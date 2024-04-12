@@ -6,17 +6,18 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+// import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.dom4j.Entity;
+// import org.dom4j.Entity;
 
-import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence.Double;
+// import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence.Double;
 
 import rescuecore2.messages.Command;
 import rescuecore2.misc.geometry.GeometryTools2D;
 import rescuecore2.misc.geometry.Line2D;
 import rescuecore2.misc.geometry.Point2D;
+import rescuecore2.misc.geometry.Vector2D;
 import rescuecore2.standard.entities.AmbulanceTeam;
 import rescuecore2.standard.entities.Area;
 import rescuecore2.standard.entities.Blockade;
@@ -36,7 +37,9 @@ public class SampleDrone extends AbstractSampleAgent<Human> {
     private static final Logger LOG = Logger.getLogger(SampleAmbulanceTeam.class);
     private static final int VISION_RANGE = 500;
     private Collection<EntityID> unexploredBuildings;
+    private static final String DISTANCE_KEY = "clear.repair.distance";
 
+    private int distance;
 
 
     @Override
@@ -62,7 +65,7 @@ public class SampleDrone extends AbstractSampleAgent<Human> {
         }
 
         //if near a blockade, go through 
-        Blockade target = getTargetBlockade(null, time);
+        Blockade target = getTargetBlockade();
         if (target != null) {
             LOG.info("Going through the blockade at " + target.getID());
             goThroughBlockade(time, target);
@@ -142,14 +145,14 @@ public class SampleDrone extends AbstractSampleAgent<Human> {
         LOG.debug("Looking for target blockade");
         Area location = (Area) location();
         LOG.debug("Looking in current location");
-        Blockade result = getTargetBlockade(location, VISION_RANGE);
+        Blockade result = getTargetBlockade(location, distance);
         if (result != null) {
         return result;
         }
         LOG.debug("Looking in neighboring locations");
         for (EntityID next : location.getNeighbours()) {
         location = (Area) model.getEntity(next);
-        result = getTargetBlockade(location, VISION_RANGE);
+        result = getTargetBlockade(location, distance);
         if (result != null) {
             return result;
         }
@@ -180,7 +183,7 @@ public class SampleDrone extends AbstractSampleAgent<Human> {
         // Logger.debug("Finding distance to " + b + " from " + x + ", " + y);
         List<Line2D> lines = GeometryTools2D.pointsToLines(
             GeometryTools2D.vertexArrayToPoints(b.getApexes()), true);
-        double best = Double.M;
+        double best = Double.MAX_VALUE;
         Point2D origin = new Point2D(x, y);
         for (Line2D next : lines) {
           Point2D closest = GeometryTools2D.getClosestPointOnSegment(next, origin);
