@@ -25,6 +25,8 @@ public final class LaunchSampleAgents {
   private static final String FIRE_BRIGADE_FLAG = "-fb";
   private static final String POLICE_FORCE_FLAG = "-pf";
   private static final String AMBULANCE_TEAM_FLAG = "-at";
+  private static final String RESCUE_ROBOT_FLAG = "-rf";
+  private static final String DRONE_FLAG = "-df";
 
   private static final Logger LOG = Logger.getLogger(LaunchSampleAgents.class);
 
@@ -53,6 +55,8 @@ public final class LaunchSampleAgents {
       int fb = -1;
       int pf = -1;
       int at = -1;
+      int rf = -1;
+      int df = -1;
       for (int i = 0; i < args.length; ++i) {
         if (args[i].equals(FIRE_BRIGADE_FLAG)) {
           fb = Integer.parseInt(args[++i]);
@@ -60,12 +64,16 @@ public final class LaunchSampleAgents {
           pf = Integer.parseInt(args[++i]);
         } else if (args[i].equals(AMBULANCE_TEAM_FLAG)) {
           at = Integer.parseInt(args[++i]);
+        } else if (args[i].equals(RESCUE_ROBOT_FLAG)){
+          rf = Integer.parseInt(args[++i]);
+        } else if (args[i].equals(DRONE_FLAG)) {
+          df = Integer.parseInt(args[++i]);
         } else {
           LOG.warn("Unrecognised option: " + args[i]);
         }
       }
       ComponentLauncher launcher = new TCPComponentLauncher(host, port, config);
-      connect(launcher, fb, pf, at, config);
+      connect(launcher, fb, pf, at, rf, df, config);
     } catch (IOException e) {
       LOG.error("Error connecting agents", e);
     } catch (ConfigException e) {
@@ -81,7 +89,7 @@ public final class LaunchSampleAgents {
 
 
   private static void connect(ComponentLauncher launcher, int fb, int pf,
-      int at, Config config) throws InterruptedException,
+      int at, int rf, int df, Config config) throws InterruptedException,
       ComponentConnectionException, ConnectionException {
     int i = 0;
     try {
@@ -109,6 +117,24 @@ public final class LaunchSampleAgents {
         LOG.info("success");
       }
     } catch (ComponentConnectionException e) {
+      LOG.info("failed: " + e.getMessage());
+    }
+    try {
+      while (rf-- !=0) {
+        LOG.info("Connecting rescue robot " + (i++) + "...");
+        launcher.connect(new SampleRescueRobot());
+        LOG.info("success");
+      }
+    } catch (ComponentConnectionException e) {
+      LOG.info("failed: " + e.getMessage());
+    }
+    try {
+      while (df-- != 0) {
+        LOG.info("Connecting drone " + (i++) + "...");
+        launcher.connect(new SampleDrone());
+        LOG.info("success");
+      }
+    } catch (ComponentConnectionException e){
       LOG.info("failed: " + e.getMessage());
     }
     try {
