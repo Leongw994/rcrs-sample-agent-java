@@ -74,6 +74,7 @@ public class SamplePoliceForce extends AbstractSampleAgent<PoliceForce> {
           bestPoint = closest;
         }
       }
+      @SuppressWarnings("null")
       Vector2D v = bestPoint.minus(new Point2D(me().getX(), me().getY()));
       v = v.normalised().scale(1000000);
       sendClear(time, (int) (me().getX() + v.getX()),

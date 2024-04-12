@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import org.apache.log4j.Logger;
+
+import rescuecore.commands.AKSay;
 import rescuecore2.messages.Command;
 import rescuecore2.misc.geometry.GeometryTools2D;
 import rescuecore2.misc.geometry.Line2D;
@@ -52,11 +54,48 @@ public class SampleRescueRobot extends AbstractSampleAgent<PoliceForce> {
         }
         for (Command next: heard) {
           LOG.debug("Heard " + next);
+          if (next instanceof AKSay) {
+            AKSay say = (AKSay) next;
+            String message = new String(say.getMessage());
+            // check if the message is from the centre
+            if(message.startsWith("Go towards the civilians at ")) {
+              //extract the coordinates from the message
+              String[] parts = message.split(" ");
+              int x = Integer.parseInt(parts[4]);
+              int y = Integer.parseInt(parts[8]);
+              //Send the message
+              LOG.info("Received the coordinates of civilians at (" + x + ", " + y + ")");
+              //Go towards the civilians
+              clearBlockadeForRescue(time, x, y);
+            }
+
+
+            
+          }
         }
       
     }
 
-     //go to the nearest blockad
+    private void clearBlockadeForRescue(int time, int targetX, int targetY) {
+      LOG.info("Clearing blockades ");
+      //Find nearest blockade
+      Blockade target = getTargetBlockade();
+      if (target != null) {
+        //move towards the target
+        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), target.getID());
+        if(target != null) {
+          LOG.info("Moving to target");
+          sendMove(time, path);
+          return;
+        }
+      }
+      //if no blockades are found or cannot reach, move towards the coordinates
+      LOG.debug("Did not find any blockades");
+      LOG.info("Moving towards the coordinates");
+      sendMove(time, buildingIDs, targetX, targetY);
+    }
+
+     //go to the nearest blockade
      private Blockade getTargetBlockade() {
         LOG.info("Looking for target civilian");
         Area location = (Area) location();
