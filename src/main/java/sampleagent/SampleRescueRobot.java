@@ -69,8 +69,6 @@ public class SampleRescueRobot extends AbstractSampleAgent<PoliceForce> {
               clearBlockadeForRescue(time, x, y);
             }
 
-
-            
           }
         }
       
