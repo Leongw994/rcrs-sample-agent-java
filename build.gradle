@@ -14,7 +14,7 @@ def getDateTime() {
 
 dependencies {
   implementation fileTree(dir: 'lib', include: '*.jar')
-  implementation 'com.github.roborescue:rcrs-server:master-SNAPSHOT'
+  implementation 'com.github.roborescue:rcrs-server:master'
   implementation 'log4j:log4j:1.2.17'
 
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'

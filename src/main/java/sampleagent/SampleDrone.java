@@ -96,7 +96,8 @@ public class SampleDrone extends AbstractSampleAgent<Human> {
             return;
         }
         LOG.info("Moving in random direction");
-        sendMove(time, randomWalk());
+        //sendMove(time, randomWalk());
+        
     }
 
 
