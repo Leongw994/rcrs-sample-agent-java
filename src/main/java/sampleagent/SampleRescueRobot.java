@@ -53,10 +53,9 @@ public class SampleRescueRobot extends AbstractSampleAgent<PoliceForce> {
         }
         for (Command next: heard) {
           LOG.debug("Heard " + next);
-          if (next instanceof AKSay) {
-            AKSay say = (AKSay) next;
-            String message = new String(say.getMessage());
-            // check if the message is from the centre
+          if (next instanceof AKSay say) {
+              String message = new String(say.getMessage());
+              // check if the message is from the centre
             if(message.startsWith("Go towards the civilians at ")) {
               //extract the coordinates from the message
               String[] parts = message.split(" ");
