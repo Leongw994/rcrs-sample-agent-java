@@ -16,12 +16,13 @@ import rescuecore2.standard.entities.Area;
 import rescuecore2.standard.entities.Blockade;
 import rescuecore2.standard.entities.PoliceForce;
 // import rescuecore2.standard.entities.Road;
+import rescuecore2.standard.entities.RescueRobot;
 import rescuecore2.standard.entities.StandardEntityURN;
 import rescuecore2.worldmodel.ChangeSet;
 import rescuecore2.worldmodel.EntityID;
 import sample.AbstractSampleAgent;
 
-public class SampleRescueRobot extends AbstractSampleAgent<PoliceForce> {
+public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
     private static final Logger LOG = Logger.getLogger(SampleRescueRobot.class);
     private static final String DISTANCE_KEY = "clear.repair.distance";
 

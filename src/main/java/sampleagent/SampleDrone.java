@@ -26,13 +26,14 @@ import rescuecore2.standard.entities.Human;
 import rescuecore2.standard.entities.Refuge;
 import rescuecore2.standard.entities.StandardEntity;
 import rescuecore2.standard.entities.StandardEntityURN;
+import rescuecore2.standard.entities.Drone;
 // import rescuecore2.standard.entities.StandardPropertyURN;
 import rescuecore2.worldmodel.ChangeSet;
 import rescuecore2.worldmodel.EntityID;
 import sample.AbstractSampleAgent;
 import sample.DistanceSorter;
 
-public class SampleDrone extends AbstractSampleAgent<Human> {
+public class SampleDrone extends AbstractSampleAgent<Drone> {
 
     private static final Logger LOG = Logger.getLogger(SampleAmbulanceTeam.class);
     private static final int VISION_RANGE = 500;
