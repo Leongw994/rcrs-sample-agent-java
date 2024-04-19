@@ -25,6 +25,6 @@ public class DummyAgent extends StandardAgent<StandardEntity> {
     return EnumSet.of(StandardEntityURN.FIRE_BRIGADE,
         StandardEntityURN.FIRE_STATION, StandardEntityURN.AMBULANCE_TEAM,
         StandardEntityURN.AMBULANCE_CENTRE, StandardEntityURN.POLICE_FORCE,
-        StandardEntityURN.POLICE_OFFICE);
+        StandardEntityURN.POLICE_OFFICE /*StandardEntityURN.DRONE, StandardEntityURN.RESCUE_ROBOT*/);
   }
 }

@@ -35,7 +35,7 @@ import sample.DistanceSorter;
 
 public class SampleDrone extends AbstractSampleAgent<Drone> {
 
-    private static final Logger LOG = Logger.getLogger(SampleAmbulanceTeam.class);
+    private static final Logger LOG = Logger.getLogger(SampleDrone.class);
     private static final int VISION_RANGE = 500;
     private Collection<EntityID> unexploredBuildings;
     private static final String DISTANCE_KEY = "clear.repair.distance";
@@ -200,6 +200,5 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         }
         return (int) best;
       }
-  
- 
+
 }
