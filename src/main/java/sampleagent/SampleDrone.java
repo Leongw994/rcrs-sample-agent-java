@@ -1,39 +1,19 @@
 package sampleagent;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-// import java.util.Set;
-
 import org.apache.log4j.Logger;
-// import org.dom4j.Entity;
-
-// import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence.Double;
-
 import rescuecore2.messages.Command;
 import rescuecore2.misc.geometry.GeometryTools2D;
 import rescuecore2.misc.geometry.Line2D;
 import rescuecore2.misc.geometry.Point2D;
-// import rescuecore2.misc.geometry.Vector2D;
-// import rescuecore2.standard.entities.AmbulanceTeam;
-import rescuecore2.standard.entities.Area;
-import rescuecore2.standard.entities.Blockade;
-import rescuecore2.standard.entities.Civilian;
-import rescuecore2.standard.entities.Human;
-import rescuecore2.standard.entities.Refuge;
-import rescuecore2.standard.entities.StandardEntity;
-import rescuecore2.standard.entities.StandardEntityURN;
-import rescuecore2.standard.entities.Drone;
-// import rescuecore2.standard.entities.StandardPropertyURN;
+import rescuecore2.standard.entities.*;
 import rescuecore2.worldmodel.ChangeSet;
 import rescuecore2.worldmodel.EntityID;
 import sample.AbstractSampleAgent;
 import sample.DistanceSorter;
 
-public class SampleDrone extends AbstractSampleAgent<Drone> {
+import java.util.*;
+
+public class SampleDrone extends AbstractSampleAgent<AmbulanceTeam> {
 
     private static final Logger LOG = Logger.getLogger(SampleAmbulanceTeam.class);
     private static final int VISION_RANGE = 500;

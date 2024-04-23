@@ -1,28 +1,28 @@
 package sampleagent;
 
 //import java.util.ArrayList;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import org.apache.log4j.Logger;
 
+import org.apache.log4j.Logger;
 import rescuecore.commands.AKSay;
 import rescuecore2.messages.Command;
 import rescuecore2.misc.geometry.GeometryTools2D;
 import rescuecore2.misc.geometry.Line2D;
 import rescuecore2.misc.geometry.Point2D;
-// import rescuecore2.misc.geometry.Vector2D;
+import rescuecore2.misc.geometry.Vector2D;
 import rescuecore2.standard.entities.Area;
 import rescuecore2.standard.entities.Blockade;
+//import rescuecore2.standard.entities.RescueRobot;
 import rescuecore2.standard.entities.PoliceForce;
-// import rescuecore2.standard.entities.Road;
-import rescuecore2.standard.entities.RescueRobot;
 import rescuecore2.standard.entities.StandardEntityURN;
 import rescuecore2.worldmodel.ChangeSet;
 import rescuecore2.worldmodel.EntityID;
 import sample.AbstractSampleAgent;
 
-public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.List;
+
+public class SampleRescueRobot extends AbstractSampleAgent<PoliceForce> {
     private static final Logger LOG = Logger.getLogger(SampleRescueRobot.class);
     private static final String DISTANCE_KEY = "clear.repair.distance";
 
@@ -67,10 +67,33 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
               //Go towards the civilians
               clearBlockadeForRescue(time, x, y);
             }
-
           }
         }
-      
+        //is robot near blockade
+        Blockade target = getTargetBlockade();
+        if (target != null) {
+            LOG.info("Clearing blockade " + target);
+            sendSpeak(time, 1, ("Clearing blockade at " + target).getBytes());
+            //sendClear(time, target.getX(), target.getY());
+            List<Line2D> lines = GeometryTools2D.pointsToLines(
+                    GeometryTools2D.vertexArrayToPoints(target.getApexes()), true);
+            double best = Double.MAX_VALUE;
+            Point2D best_point = null;
+            Point2D origin = new Point2D(me().getX(), me().getY());
+            for (Line2D next : lines) {
+                Point2D closest = GeometryTools2D.getClosestPointOnSegment(next, origin);
+                double distance = GeometryTools2D.getDistance(origin, closest);
+                if (distance < best) {
+                    best = distance;
+                    best_point = closest;
+                }
+            }
+            Vector2D vec = best_point.minus(new Point2D(me().getX(), me().getY()));
+            vec = vec.normalised().scale(1000000);
+            //clear the blockade
+            sendClear(time, (int) (me().getX() + vec.getX()), (int) (vec.getY() + me().getY()));
+            return;
+        }
     }
 
     private void clearBlockadeForRescue(int time, int targetX, int targetY) {
@@ -81,15 +104,31 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
         //move towards the target
         List<EntityID> path = search.breadthFirstSearch(me().getPosition(), target.getID());
         if(target != null) {
-          LOG.info("Moving to target");
-          sendMove(time, path);
-          return;
+            LOG.info("Moving to target");
+            sendMove(time, path);
+            return;
         }
       }
       //if no blockades are found or cannot reach, move towards the coordinates
       LOG.debug("Did not find any blockades");
       LOG.info("Moving towards the coordinates");
       sendMove(time, buildingIDs, targetX, targetY);
+
+      if (noMoreBlockades()) {
+          sendSpeak(time, 1, "Civilians have been evacuated. No more assistance required".getBytes());
+      }
+
+    }
+
+    private boolean noMoreBlockades() {
+        for (EntityID next : buildingIDs) {
+            Area area = (Area) model.getEntity(next);
+            if(area != null && area.isBlockadesDefined() && !area.getBlockades().isEmpty()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
      //go to the nearest blockade
@@ -154,5 +193,6 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
           }
           return (int) best;
     }
+
     
 }
