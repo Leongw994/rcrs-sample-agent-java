@@ -43,6 +43,7 @@ public class SampleDrone extends AbstractSampleAgent<AmbulanceTeam> {
         }
         for (Command next : heard){
             LOG.debug("Heard " + next);
+            LOG.info("I am at the channel 1");
         }
 
         //if near a blockade, go through 
