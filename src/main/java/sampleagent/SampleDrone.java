@@ -69,7 +69,6 @@ public class SampleDrone extends AbstractSampleAgent<AmbulanceTeam> {
                     }
             }
         }
-
         // Keep exploring
         List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
         if(path != null) {
@@ -78,7 +77,7 @@ public class SampleDrone extends AbstractSampleAgent<AmbulanceTeam> {
             return;
         }
         LOG.info("Moving in random direction");
-        //sendMove(time, randomWalk());
+        sendMove(time, randomWalk());
         
     }
 

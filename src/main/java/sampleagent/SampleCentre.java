@@ -57,8 +57,8 @@ public class SampleCentre extends StandardAgent<Building> {
 
   @Override
   protected EnumSet<StandardEntityURN> getRequestedEntityURNsEnum() {
-    return EnumSet.of(StandardEntityURN.FIRE_STATION,
-        StandardEntityURN.AMBULANCE_CENTRE, StandardEntityURN.POLICE_OFFICE);
+    return EnumSet.of(/*StandardEntityURN.FIRE_STATION,
+        StandardEntityURN.AMBULANCE_CENTRE, */StandardEntityURN.POLICE_OFFICE);
   }
 
   private void sendCoordinatesToRescueRobot(int time, int x, int y) {
