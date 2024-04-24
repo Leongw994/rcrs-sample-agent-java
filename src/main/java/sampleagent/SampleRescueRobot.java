@@ -93,7 +93,6 @@ public class SampleRescueRobot extends AbstractSampleAgent<PoliceForce> {
             //clear the blockade
             sendClear(time, (int) (me().getX() + vec.getX()), (int) (vec.getY() + me().getY()));
             LOG.info("HEllo world");
-            return;
         }
     }
 
