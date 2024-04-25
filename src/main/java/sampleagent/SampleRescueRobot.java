@@ -11,7 +11,7 @@ import rescuecore2.misc.geometry.Point2D;
 import rescuecore2.misc.geometry.Vector2D;
 import rescuecore2.standard.entities.Area;
 import rescuecore2.standard.entities.Blockade;
-//import rescuecore2.standard.entities.RescueRobot;
+import rescuecore2.standard.entities.RescueRobot;
 import rescuecore2.standard.entities.PoliceForce;
 import rescuecore2.standard.entities.StandardEntityURN;
 import rescuecore2.worldmodel.ChangeSet;
@@ -22,7 +22,7 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 
-public class SampleRescueRobot extends AbstractSampleAgent<PoliceForce> {
+public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
     private static final Logger LOG = Logger.getLogger(SampleRescueRobot.class);
     private static final String DISTANCE_KEY = "clear.repair.distance";
 
@@ -92,7 +92,8 @@ public class SampleRescueRobot extends AbstractSampleAgent<PoliceForce> {
             vec = vec.normalised().scale(1000000);
             //clear the blockade
             sendClear(time, (int) (me().getX() + vec.getX()), (int) (vec.getY() + me().getY()));
-            LOG.info("HEllo world");
+            //LOG.info("HEllo world");
+            return;
         }
     }
 
