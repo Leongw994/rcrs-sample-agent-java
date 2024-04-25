@@ -84,7 +84,7 @@ public class SampleDrone extends AbstractSampleAgent<AmbulanceTeam> {
 
     @Override
     protected EnumSet<StandardEntityURN> getRequestedEntityURNsEnum() {
-        return EnumSet.of(StandardEntityURN.AMBULANCE_TEAM);
+        return EnumSet.of(StandardEntityURN.DRONE);
     }
 
     private void goThroughBlockade(int time, Blockade blockade) {

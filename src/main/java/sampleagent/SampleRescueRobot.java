@@ -43,7 +43,7 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
 
     @Override
     protected EnumSet<StandardEntityURN> getRequestedEntityURNsEnum() {
-        return EnumSet.of(StandardEntityURN.POLICE_FORCE);
+        return EnumSet.of(StandardEntityURN.RESCUE_ROBOT);
     }
 
     @Override
