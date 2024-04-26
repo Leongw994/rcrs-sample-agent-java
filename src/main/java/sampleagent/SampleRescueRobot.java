@@ -51,6 +51,7 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
         if(time == config.getIntValue(kernel.KernelConstants.IGNORE_AGENT_COMMANDS_KEY)) {
           //Subscribe to channel 1
           sendSubscribe(time, 1);
+          LOG.info("hello world");
         }
         for (Command next: heard) {
           LOG.debug("Heard " + next);
