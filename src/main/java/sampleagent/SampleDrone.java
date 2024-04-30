@@ -19,20 +19,14 @@ import rescuecore2.misc.geometry.Line2D;
 import rescuecore2.misc.geometry.Point2D;
 // import rescuecore2.misc.geometry.Vector2D;
 // import rescuecore2.standard.entities.AmbulanceTeam;
-import rescuecore2.standard.entities.Area;
-import rescuecore2.standard.entities.Blockade;
-import rescuecore2.standard.entities.Civilian;
-import rescuecore2.standard.entities.Human;
-import rescuecore2.standard.entities.Refuge;
-import rescuecore2.standard.entities.StandardEntity;
-import rescuecore2.standard.entities.StandardEntityURN;
+import rescuecore2.standard.entities.*;
 // import rescuecore2.standard.entities.StandardPropertyURN;
 import rescuecore2.worldmodel.ChangeSet;
 import rescuecore2.worldmodel.EntityID;
 import sample.AbstractSampleAgent;
 import sample.DistanceSorter;
 
-public class SampleDrone extends AbstractSampleAgent<Human> {
+public class SampleDrone extends AbstractSampleAgent<Drone> {
 
     private static final Logger LOG = Logger.getLogger(SampleAmbulanceTeam.class);
     private static final int VISION_RANGE = 500;
@@ -102,7 +96,7 @@ public class SampleDrone extends AbstractSampleAgent<Human> {
 
     @Override
     protected EnumSet<StandardEntityURN> getRequestedEntityURNsEnum() {
-        return EnumSet.of(StandardEntityURN.AMBULANCE_TEAM);
+        return EnumSet.of(StandardEntityURN.DRONE);
     }
 
     private void goThroughBlockade(int time, Blockade blockade) {
