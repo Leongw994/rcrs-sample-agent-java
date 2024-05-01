@@ -1,6 +1,6 @@
 package sampleagent;
 
-//import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
@@ -11,10 +11,13 @@ import rescuecore2.messages.Command;
 import rescuecore2.misc.geometry.GeometryTools2D;
 import rescuecore2.misc.geometry.Line2D;
 import rescuecore2.misc.geometry.Point2D;
-// import rescuecore2.misc.geometry.Vector2D;
-import rescuecore2.standard.entities.*;
-// import rescuecore2.standard.entities.Road;
-// import rescuecore2.standard.entities.StandardEntity;
+import rescuecore2.misc.geometry.Vector2D;
+import rescuecore2.standard.entities.Area;
+import rescuecore2.standard.entities.Blockade;
+import rescuecore2.standard.entities.RescueRobot;
+import rescuecore2.standard.entities.Road;
+import rescuecore2.standard.entities.StandardEntity;
+import rescuecore2.standard.entities.StandardEntityURN;
 import rescuecore2.worldmodel.ChangeSet;
 import rescuecore2.worldmodel.EntityID;
 import sample.AbstractSampleAgent;
@@ -34,13 +37,7 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
     protected void postConnect() {
         super.postConnect();
         model.indexClass(StandardEntityURN.ROAD);
-        distance = (int) Math.round(config.getIntValue(DISTANCE_KEY) * 0.96);
-    }
-
-
-    @Override
-    protected EnumSet<StandardEntityURN> getRequestedEntityURNsEnum() {
-        return EnumSet.of(StandardEntityURN.RESCUE_ROBOT);
+        distance = (int) Math.round(config.getIntValue(DISTANCE_KEY) * 0.95);
     }
 
     @Override
@@ -51,7 +48,7 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
         }
         for (Command next: heard) {
           LOG.debug("Heard " + next);
-          if (next instanceof AKSay) {
+         /* if (next instanceof AKSay) {
             AKSay say = (AKSay) next;
             String message = new String(say.getMessage());
             // check if the message is from the centre
@@ -63,34 +60,93 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
               //Send the message
               LOG.info("Received the coordinates of civilians at (" + x + ", " + y + ")");
               //Go towards the civilians
-              clearBlockadeForRescue(time, x, y);
+              //clearBlockadeForRescue(time, x, y);
             }
-
-
-            
-          }
+          }*/
         }
-      
+        // Am I near a blockade?
+        Blockade target = getTargetBlockade();
+        if (target != null) {
+            LOG.info("Clearing blockade " + target);
+            sendSpeak(time, 1, ("Clearing " + target).getBytes());
+            // sendClear(time, target.getX(), target.getY());
+            List<Line2D> lines = GeometryTools2D.pointsToLines(
+                    GeometryTools2D.vertexArrayToPoints(target.getApexes()), true);
+            double best = Double.MAX_VALUE;
+            Point2D bestPoint = null;
+            Point2D origin = new Point2D(me().getX(), me().getY());
+            for (Line2D next : lines) {
+                Point2D closest = GeometryTools2D.getClosestPointOnSegment(next,
+                        origin);
+                double d = GeometryTools2D.getDistance(origin, closest);
+                if (d < best) {
+                    best = d;
+                    bestPoint = closest;
+                }
+            }
+            @SuppressWarnings("null")
+            Vector2D v = bestPoint.minus(new Point2D(me().getX(), me().getY()));
+            v = v.normalised().scale(1000000);
+            sendClear(time, (int) (me().getX() + v.getX()),
+                    (int) (me().getY() + v.getY()));
+            return;
+        }
+        // Plan a path to a blocked area
+        List<EntityID> path = search.breadthFirstSearch(me().getPosition(),
+                getBlockedRoads());
+        if (path != null) {
+            LOG.info("Moving to target");
+            Road r = (Road) model.getEntity(path.get(path.size() - 1));
+            Blockade b = getTargetBlockade(r, -1);
+            sendMove(time, path, b.getX(), b.getY());
+            LOG.debug("Path: " + path);
+            LOG.debug("Target coordinates: " + b.getX() + ", " + b.getY());
+            return;
+        }
+        LOG.debug("Couldn't plan a path to a blocked road");
+        LOG.info("Moving randomly");
+        sendMove(time, randomWalk());
     }
 
-    private void clearBlockadeForRescue(int time, int targetX, int targetY) {
-      LOG.info("Clearing blockades ");
-      //Find nearest blockade
-      Blockade target = getTargetBlockade();
-      if (target != null) {
-        //move towards the target
-        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), target.getID());
-        if(target != null) {
-          LOG.info("Moving to target");
-          sendMove(time, path);
-          return;
-        }
-      }
-      //if no blockades are found or cannot reach, move towards the coordinates
-      LOG.debug("Did not find any blockades");
-      LOG.info("Moving towards the coordinates");
-      sendMove(time, buildingIDs, targetX, targetY);
+//    private void clearBlockadeForRescue(int time, int targetX, int targetY) {
+//      LOG.info("Clearing blockades ");
+//      //Find nearest blockade
+//      Blockade target = getTargetBlockade();
+//      if (target != null) {
+//        //move towards the target
+//        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), target.getID());
+//        if(target != null) {
+//          LOG.info("Moving to target");
+//          sendMove(time, path);
+//          return;
+//        }
+//      }
+//      //if no blockades are found or cannot reach, move towards the coordinates
+//      LOG.debug("Did not find any blockades");
+//      LOG.info("Moving towards the coordinates");
+//      sendMove(time, buildingIDs, targetX, targetY);
+//    }
+
+
+    @Override
+    protected EnumSet<StandardEntityURN> getRequestedEntityURNsEnum() {
+        return EnumSet.of(StandardEntityURN.RESCUE_ROBOT);
     }
+
+
+    private List<EntityID> getBlockedRoads() {
+        Collection<
+                StandardEntity> e = model.getEntitiesOfType(StandardEntityURN.ROAD);
+        List<EntityID> result = new ArrayList<EntityID>();
+        for (StandardEntity next : e) {
+            Road r = (Road) next;
+            if (r.isBlockadesDefined() && !r.getBlockades().isEmpty()) {
+                result.add(r.getID());
+            }
+        }
+        return result;
+    }
+
 
      //go to the nearest blockade
      private Blockade getTargetBlockade() {
