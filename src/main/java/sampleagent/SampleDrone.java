@@ -22,6 +22,7 @@ import rescuecore2.misc.geometry.Point2D;
 import rescuecore2.standard.entities.*;
 // import rescuecore2.standard.entities.StandardPropertyURN;
 import rescuecore2.worldmodel.ChangeSet;
+import rescuecore2.worldmodel.Entity;
 import rescuecore2.worldmodel.EntityID;
 import sample.AbstractSampleAgent;
 import sample.DistanceSorter;
@@ -31,7 +32,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
     private static final Logger LOG = Logger.getLogger(SampleAmbulanceTeam.class);
     private static final int VISION_RANGE = 500;
     private Collection<EntityID> unexploredBuildings;
-    private static final String DISTANCE_KEY = "clear.repair.distance";
+
 
     private int distance;
 
@@ -44,7 +45,10 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
     @Override
     protected void postConnect() {
         super.postConnect();
-        model.indexClass(StandardEntityURN.CIVILIAN, StandardEntityURN.BUILDING);
+        model.indexClass(StandardEntityURN.CIVILIAN, StandardEntityURN.BUILDING,
+                StandardEntityURN.RESCUE_ROBOT, StandardEntityURN.DRONE,
+                StandardEntityURN.REFUGE, StandardEntityURN.HYDRANT,
+                StandardEntityURN.FIRE_BRIGADE, StandardEntityURN.GAS_STATION);
         unexploredBuildings = new HashSet<EntityID>(buildingIDs);
     }
 
@@ -57,14 +61,14 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         for (Command next : heard){
             LOG.debug("Heard " + next);
         }
-
+        updateUnexploredBuildings(changed);
         //if near a blockade, go through 
-        Blockade target = getTargetBlockade();
+       /* Blockade target = getTargetBlockade();
         if (target != null) {
             LOG.info("Going through the blockade at " + target.getID());
             goThroughBlockade(time, target);
             return;
-        }
+        }*/
 
         //go through targets and see if there are any civilians
         for (Human next : getTargets()) {
@@ -77,8 +81,17 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
                         LOG.info("Civilians detected at: " + x + ", " + y);
                         //Send coordinates to police office 
                         sendCoordinatesToPolice(1, x, y);
+
                         return;
                     }
+            } else {
+                //try to move to target
+                List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
+                if(path != null){
+                    LOG.info("Moving to target");
+                    sendMove(time, path);
+                    return;
+                }
             }
         }
 
@@ -99,16 +112,23 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         return EnumSet.of(StandardEntityURN.DRONE);
     }
 
-    private void goThroughBlockade(int time, Blockade blockade) {
-        sendClear(time, blockade.getID());
-        sendMove(time, randomWalk());
-    }
+//    private void goThroughBlockade(int time, Blockade blockade) {
+//        Collection<StandardEntity> roads = model.getEntitiesOfType(StandardEntityURN.ROAD);
+//        List<EntityID> res = new ArrayList<EntityID>();
+//        for (StandardEntity next : roads) {
+//
+//        }
+////        sendClear(time, blockade.getID());
+////        sendMove(time, randomWalk());
+//
+//    }
 
     private void sendCoordinatesToPolice(int time, int x, int y) {
         Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.POLICE_OFFICE);
         for (StandardEntity entity : entities) {
             int policeOfficeId = entity.getID().getValue();
             sendSpeak(time, policeOfficeId, ("Civilians detected at " + x + ", " + y).getBytes());
+            LOG.info("Send help!");
         }        
     }
 
@@ -147,9 +167,9 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         for (EntityID next : location.getNeighbours()) {
         location = (Area) model.getEntity(next);
         result = getTargetBlockade(location, distance);
-        if (result != null) {
-            return result;
-        }
+            if (result != null) {
+                return result;
+            }
         }
         return null;
     }

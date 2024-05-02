@@ -37,7 +37,8 @@ public class SampleCentre extends StandardAgent<Building> {
     }
     for (Command next : heard) {
       LOG.debug("Heard " + next);
-     /* if (next instanceof AKSay) {
+      if (next instanceof AKSay) {
+
         AKSay ksay = (AKSay) next;
         String message = new String(ksay.getMessage());
         //check if the message is from the drone agent 
@@ -50,7 +51,7 @@ public class SampleCentre extends StandardAgent<Building> {
           //send coordinates to the rescue robot 
           sendCoordinatesToRescueRobot(time, x, y);
         }
-      }*/
+      }
     }
     sendRest(time);
   }
@@ -62,7 +63,7 @@ public class SampleCentre extends StandardAgent<Building> {
         StandardEntityURN.AMBULANCE_CENTRE, StandardEntityURN.POLICE_OFFICE);
   }
 
- /* private void sendCoordinatesToRescueRobot(int time, int x, int y) {
+  private void sendCoordinatesToRescueRobot(int time, int x, int y) {
     int rescueRobotID = getRescueRobotID();
     // send command to rescue robot to go towards the coordinates
     sendSpeak(time, rescueRobotID, ("Go towards the civilians at " + x + ", " + y).getBytes());
@@ -76,6 +77,6 @@ public class SampleCentre extends StandardAgent<Building> {
     }
     // return null if the rescue robot is not found
     return 0;
-  }*/
+  }
 
 }

@@ -37,7 +37,7 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
     protected void postConnect() {
         super.postConnect();
         model.indexClass(StandardEntityURN.ROAD);
-        distance = (int) Math.round(config.getIntValue(DISTANCE_KEY) * 0.95);
+        distance = (int) Math.round(config.getIntValue(DISTANCE_KEY) * 0.97);
     }
 
     @Override
@@ -48,21 +48,21 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
         }
         for (Command next: heard) {
           LOG.debug("Heard " + next);
-         /* if (next instanceof AKSay) {
-            AKSay say = (AKSay) next;
-            String message = new String(say.getMessage());
-            // check if the message is from the centre
-            if(message.startsWith("Go towards the civilians at ")) {
-              //extract the coordinates from the message
-              String[] parts = message.split(" ");
-              int x = Integer.parseInt(parts[4]);
-              int y = Integer.parseInt(parts[8]);
-              //Send the message
-              LOG.info("Received the coordinates of civilians at (" + x + ", " + y + ")");
-              //Go towards the civilians
-              //clearBlockadeForRescue(time, x, y);
-            }
-          }*/
+           /* if (next instanceof AKSay) {
+                AKSay say = (AKSay) next;
+                String message = new String(say.getMessage());
+                // check if the message is from the centre
+                if(message.startsWith("Go towards the civilians at ")) {
+                    //extract the coordinates from the message
+                    String[] parts = message.split(" ");
+                    int x = Integer.parseInt(parts[4]);
+                    int y = Integer.parseInt(parts[8]);
+                    //Send the message
+                    LOG.info("Received the coordinates of civilians at (" + x + ", " + y + ")");
+                    //Go towards the civilians
+                    pathToTrappedCivilians(1, x, y);
+                }
+            }*/
         }
         // Am I near a blockade?
         Blockade target = getTargetBlockade();
@@ -106,32 +106,51 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
         LOG.debug("Couldn't plan a path to a blocked road");
         LOG.info("Moving randomly");
         sendMove(time, randomWalk());
+
     }
 
-//    private void clearBlockadeForRescue(int time, int targetX, int targetY) {
-//      LOG.info("Clearing blockades ");
-//      //Find nearest blockade
-//      Blockade target = getTargetBlockade();
-//      if (target != null) {
-//        //move towards the target
-//        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), target.getID());
-//        if(target != null) {
-//          LOG.info("Moving to target");
-//          sendMove(time, path);
-//          return;
-//        }
-//      }
-//      //if no blockades are found or cannot reach, move towards the coordinates
-//      LOG.debug("Did not find any blockades");
-//      LOG.info("Moving towards the coordinates");
-//      sendMove(time, buildingIDs, targetX, targetY);
-//    }
+   /* private void pathToTrappedCivilians(int time, int targetX, int targetY) {
+      LOG.info("Clearing blockades ");
+      //plan a path to an area of trapped civilians
+      List<EntityID> path = search.breadthFirstSearch(me().getPosition(), getBlockedRoads());
+      if(path != null) {
+          LOG.info("Moving to target");
+          Road road = (Road) model.getEntity(path.get(path.size() - 1));
+          Blockade blockade = getTargetBlockade(road, -1);
+          targetX = blockade.getX();
+          targetY = blockade.getY();
+          sendMove(time, path, targetX, targetY);
+          LOG.debug("Path: " + path);
+          LOG.debug("Target coordinates of trapped civilians: " + targetX + ", " + targetY);
+          return;
+      }
 
+      //Could not find a path
+      LOG.debug("Could not find a path to trapped civilains");
+      sendMove(time, randomWalk());
+
+      //check if there are no more blockades after clearing them
+      if (noMoreCivilians()) {
+          sendSpeak(1, time, "All civilians have been evacuated. Requesting assistance from Police Office".getBytes());
+      }
+    }
+*/
 
     @Override
     protected EnumSet<StandardEntityURN> getRequestedEntityURNsEnum() {
         return EnumSet.of(StandardEntityURN.RESCUE_ROBOT);
     }
+
+ /*   private boolean noMoreCivilians() {
+        for (EntityID next : buildingIDs) {
+            Area area = (Area) model.getEntity(next);
+            if (area != null && area.isBlockadesDefined() && !area.getBlockades().isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+*/
 
 
     private List<EntityID> getBlockedRoads() {
