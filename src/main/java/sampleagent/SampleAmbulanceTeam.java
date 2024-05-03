@@ -80,7 +80,7 @@ public class SampleAmbulanceTeam extends AbstractSampleAgent<AmbulanceTeam> {
     // Go through targets (sorted by distance) and check for things we can do
     for (Human next : getTargets()) {
       if (next.getPosition().equals(location().getID())) {
-        // Targets in the same place might need rescueing or loading
+        // Targets in the same place might need rescuing or loading
         if ((next instanceof Civilian) && next.getBuriedness() == 0
             && !(location() instanceof Refuge)) {
           // Load
