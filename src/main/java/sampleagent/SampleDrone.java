@@ -19,6 +19,7 @@ import rescuecore2.misc.geometry.Line2D;
 import rescuecore2.misc.geometry.Point2D;
 // import rescuecore2.misc.geometry.Vector2D;
 // import rescuecore2.standard.entities.AmbulanceTeam;
+import rescuecore2.misc.geometry.Vector2D;
 import rescuecore2.standard.entities.*;
 // import rescuecore2.standard.entities.StandardPropertyURN;
 import rescuecore2.worldmodel.ChangeSet;
@@ -63,12 +64,12 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         }
         updateUnexploredBuildings(changed);
         //if near a blockade, go through 
-       /* Blockade target = getTargetBlockade();
+        Blockade target = getTargetBlockade();
         if (target != null) {
-            LOG.info("Going through the blockade at " + target.getID());
-            goThroughBlockade(time, target);
-            return;
-        }*/
+            LOG.info("Dont know how to fly yet");
+            sendSpeak(time, 1, "I shall use the the bulldozer ripper to clear ".getBytes());
+
+        }
 
         //go through targets and see if there are any civilians
         for (Human next : getTargets()) {
@@ -191,6 +192,19 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         }
         LOG.debug("No blockades found");
         return null;
+    }
+
+    private List<EntityID> getBlockedRoads() {
+        Collection<
+                StandardEntity> e = model.getEntitiesOfType(StandardEntityURN.ROAD);
+        List<EntityID> result = new ArrayList<EntityID>();
+        for (StandardEntity next : e) {
+            Road r = (Road) next;
+            if (r.isBlockadesDefined() && !r.getBlockades().isEmpty()) {
+                result.add(r.getID());
+            }
+        }
+        return result;
     }
 
     private int findDistanceTo(Blockade b, int x, int y) {
