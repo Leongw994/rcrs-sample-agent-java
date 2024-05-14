@@ -48,7 +48,7 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
         }
         for (Command next: heard) {
           LOG.debug("Heard " + next);
-           /* if (next instanceof AKSay) {
+            if (next instanceof AKSay) {
                 AKSay say = (AKSay) next;
                 String message = new String(say.getMessage());
                 // check if the message is from the centre
@@ -62,7 +62,7 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
                     //Go towards the civilians
                     pathToTrappedCivilians(1, x, y);
                 }
-            }*/
+            }
         }
         // Am I near a blockade?
         Blockade target = getTargetBlockade();
@@ -109,7 +109,7 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
 
     }
 
-   /* private void pathToTrappedCivilians(int time, int targetX, int targetY) {
+    private void pathToTrappedCivilians(int time, int targetX, int targetY) {
       LOG.info("Clearing blockades ");
       //plan a path to an area of trapped civilians
       List<EntityID> path = search.breadthFirstSearch(me().getPosition(), getBlockedRoads());
@@ -134,14 +134,13 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
           sendSpeak(1, time, "All civilians have been evacuated. Requesting assistance from Police Office".getBytes());
       }
     }
-*/
 
     @Override
     protected EnumSet<StandardEntityURN> getRequestedEntityURNsEnum() {
         return EnumSet.of(StandardEntityURN.RESCUE_ROBOT);
     }
 
- /*   private boolean noMoreCivilians() {
+    private boolean noMoreCivilians() {
         for (EntityID next : buildingIDs) {
             Area area = (Area) model.getEntity(next);
             if (area != null && area.isBlockadesDefined() && !area.getBlockades().isEmpty()) {
@@ -150,7 +149,6 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
         }
         return true;
     }
-*/
 
 
     private List<EntityID> getBlockedRoads() {
