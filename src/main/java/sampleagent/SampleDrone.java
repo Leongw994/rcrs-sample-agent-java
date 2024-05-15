@@ -30,7 +30,7 @@ import sample.DistanceSorter;
 
 public class SampleDrone extends AbstractSampleAgent<Drone> {
 
-    private static final Logger LOG = Logger.getLogger(SampleAmbulanceTeam.class);
+    private static final Logger LOG = Logger.getLogger(SampleDrone.class);
     private static final int VISION_RANGE = 500;
     private Collection<EntityID> unexploredBuildings;
 
@@ -162,7 +162,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         LOG.debug("Looking in current location");
         Blockade result = getTargetBlockade(location, distance);
         if (result != null) {
-        return result;
+            return result;
         }
         LOG.debug("Looking in neighboring locations");
         for (EntityID next : location.getNeighbours()) {

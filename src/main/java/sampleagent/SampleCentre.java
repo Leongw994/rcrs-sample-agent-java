@@ -49,7 +49,7 @@ public class SampleCentre extends StandardAgent<Building> {
           int y = Integer.parseInt(parts[8]);
           LOG.info("Received coordinates of civilians: (" + x + "," + y + ")");
           //send coordinates to the rescue robot 
-          sendCoordinatesToRescueRobot(time, x, y);
+          sendCoordinatesToRescueRobot(1, x, y);
         }
       }
     }
@@ -60,7 +60,8 @@ public class SampleCentre extends StandardAgent<Building> {
   @Override
   protected EnumSet<StandardEntityURN> getRequestedEntityURNsEnum() {
     return EnumSet.of(StandardEntityURN.FIRE_STATION,
-        StandardEntityURN.AMBULANCE_CENTRE, StandardEntityURN.POLICE_OFFICE);
+        StandardEntityURN.AMBULANCE_CENTRE, StandardEntityURN.POLICE_OFFICE,
+        StandardEntityURN.DRONE, StandardEntityURN.RESCUE_ROBOT);
   }
 
   private void sendCoordinatesToRescueRobot(int time, int x, int y) {
