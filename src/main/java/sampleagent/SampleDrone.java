@@ -91,6 +91,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
                 if(path != null){
                     LOG.info("Moving to target");
                     //sendFly(time, 200, path);
+                    sendMove(time, path);
                     return;
                 }
             }
@@ -100,12 +101,14 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
         if(path != null) {
             LOG.info("Searching map");
-            //sendFly(time, 200, path);
+            sendMove(time, path);
+//            sendFly(time, 120, path);
             return;
         }
         LOG.info("Moving in random direction");
         sendMove(time, randomWalk());
     }
+
 
 
     @Override
