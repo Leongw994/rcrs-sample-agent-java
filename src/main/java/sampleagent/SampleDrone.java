@@ -82,7 +82,6 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
                         LOG.info("Civilians detected at: " + x + ", " + y);
                         //Send coordinates to police office 
                         sendCoordinatesToPolice(1, x, y);
-
                         return;
                     }
             } else {
@@ -90,7 +89,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
                 List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
                 if(path != null){
                     LOG.info("Moving to target");
-//                    sendFly(time, 20, path);
+                    sendFly(time, path);
                     return;
                 }
             }
@@ -100,12 +99,12 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
         if(path != null) {
             LOG.info("Searching map");
-            sendMove(time, path);
-            //sendFly(time, 120, path);
+            //sendMove(time, path);
+            sendFly(time, path);
             return;
         }
         LOG.info("Moving in random direction");
-        sendMove(time, randomWalk());
+        sendFly(time, randomWalk());
     }
 
 
