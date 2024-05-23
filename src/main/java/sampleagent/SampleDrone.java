@@ -64,12 +64,12 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         }
         updateUnexploredBuildings(changed);
         //if near a blockade, go through 
-        Blockade target = getTargetBlockade();
-        if (target != null) {
-            LOG.info("Dont know how to fly yet");
-            sendSpeak(time, 1, "I shall use the the bulldozer ripper to clear ".getBytes());
-
-        }
+//        Blockade target = getTargetBlockade();
+//        if (target != null) {
+//            LOG.info("Dont know how to fly yet");
+//            sendSpeak(time, 1, "I shall use the the bulldozer ripper to clear ".getBytes());
+//
+//        }
 
         //go through targets and see if there are any civilians
         for (Human next : getTargets()) {
@@ -90,8 +90,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
                 List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
                 if(path != null){
                     LOG.info("Moving to target");
-//                    sendFly(time, path);
-//                    sendMove(time, path);
+//                    sendFly(time, 20, path);
                     return;
                 }
             }
@@ -101,7 +100,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
         if(path != null) {
             LOG.info("Searching map");
-//            sendMove(time, path);
+            sendMove(time, path);
             //sendFly(time, 120, path);
             return;
         }
@@ -157,44 +156,6 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         for(EntityID next : changed.getChangedEntities()) {
             unexploredBuildings.remove(next);
         }
-    }
-    
-    private Blockade getTargetBlockade() {
-        LOG.debug("Looking for target blockade");
-        Area location = (Area) location();
-        LOG.debug("Looking in current location");
-        Blockade result = getTargetBlockade(location, distance);
-        if (result != null) {
-            return result;
-        }
-        LOG.debug("Looking in neighboring locations");
-        for (EntityID next : location.getNeighbours()) {
-        location = (Area) model.getEntity(next);
-        result = getTargetBlockade(location, distance);
-            if (result != null) {
-                return result;
-            }
-        }
-        return null;
-    }
-
-    private Blockade getTargetBlockade(Area area, int maxDistance) {
-        if(area == null || !area.isBlockadesDefined()) {
-            return null;
-        }
-        List<EntityID> ids = area.getBlockades();
-        //find nearest blockade that is in range 
-        int x = me().getX();
-        int y = me().getY();
-        for (EntityID next : ids) {
-            Blockade b = (Blockade) model.getEntity(next);
-            double distance = findDistanceTo(b, x, y);
-            if(maxDistance < 0 || distance < maxDistance) {
-                return b;
-            }
-        }
-        LOG.debug("No blockades found");
-        return null;
     }
 
     private List<EntityID> getBlockedRoads() {
