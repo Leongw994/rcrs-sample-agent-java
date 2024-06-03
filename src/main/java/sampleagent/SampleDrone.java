@@ -63,13 +63,11 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
             LOG.debug("Heard " + next);
         }
         updateUnexploredBuildings(changed);
-        //if near a blockade, go through 
-//        Blockade target = getTargetBlockade();
-//        if (target != null) {
-//            LOG.info("Dont know how to fly yet");
-//            sendSpeak(time, 1, "I shall use the the bulldozer ripper to clear ".getBytes());
-//
-//        }
+//        //if near a blockade, go through
+        Blockade target = getTargetBlockade();
+        if (target != null) {
+
+        }
 
         //go through targets and see if there are any civilians
         for (Human next : getTargets()) {
@@ -79,7 +77,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
                     && !(location() instanceof Refuge)) {
                         int x = me().getX();
                         int y = me().getY();
-                        LOG.info("Civilians detected at: " + x + ", " + y);
+//                        LOG.info("Civilians detected at: " + x + ", " + y);
                         //Send coordinates to police office 
                         sendCoordinatesToPolice(1, x, y);
                         return;
@@ -89,7 +87,8 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
                 List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
                 if(path != null){
                     LOG.info("Moving to target");
-                    sendFly(time, path);
+                    sendMove(time, path);
+//                    sendFly(time, path);
                     return;
                 }
             }
@@ -99,12 +98,13 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
         if(path != null) {
             LOG.info("Searching map");
-            //sendMove(time, path);
-            sendFly(time, path);
+            sendMove(time, path);
+//            sendFly(time, path);
             return;
         }
-        LOG.info("Moving in random direction");
-        sendFly(time, randomWalk());
+        LOG.info("Flying in random direction");
+        sendMove(time, randomWalk());
+//        sendFly(time, randomWalk());
     }
 
 
@@ -126,7 +126,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
 //    }
 
     private void sendCoordinatesToPolice(int time, int x, int y) {
-        Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.POLICE_OFFICE);
+        Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.RESCUE_ROBOT);
         for (StandardEntity entity : entities) {
             int policeOfficeId = entity.getID().getValue();
             sendSpeak(time, policeOfficeId, ("Civilians detected at " + x + ", " + y).getBytes());
@@ -189,6 +189,49 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         }
         return (int) best;
       }
+
+    private Blockade getTargetBlockade() {
+        LOG.debug("Looking for target blockade");
+        Area location = (Area) location();
+        LOG.debug("Looking in current location");
+        Blockade result = getTargetBlockade(location, distance);
+        if (result != null) {
+            return result;
+        }
+        LOG.debug("Looking in neighboring locations");
+        for (EntityID next : location.getNeighbours()) {
+            location = (Area) model.getEntity(next);
+            result = getTargetBlockade(location, distance);
+            if (result != null) {
+                return result;
+            }
+        }
+        return null;
+    }
+
+
+    private Blockade getTargetBlockade(Area area, int maxDistance) {
+        // Logger.debug("Looking for nearest blockade in " + area);
+        if (area == null || !area.isBlockadesDefined()) {
+            // Logger.debug("Blockades undefined");
+            return null;
+        }
+        List<EntityID> ids = area.getBlockades();
+        // Find the first blockade that is in range.
+        int x = me().getX();
+        int y = me().getY();
+        for (EntityID next : ids) {
+            Blockade b = (Blockade) model.getEntity(next);
+            double d = findDistanceTo(b, x, y);
+            // Logger.debug("Distance to " + b + " = " + d);
+            if (maxDistance < 0 || d < maxDistance) {
+                // Logger.debug("In range");
+                return b;
+            }
+        }
+        // Logger.debug("No blockades in range");
+        return null;
+    }
   
  
 }
