@@ -38,7 +38,6 @@ public class SampleCentre extends StandardAgent<Building> {
     for (Command next : heard) {
       LOG.debug("Heard " + next);
       if (next instanceof AKSay) {
-
         AKSay ksay = (AKSay) next;
         String message = new String(ksay.getMessage());
         //check if the message is from the drone agent 

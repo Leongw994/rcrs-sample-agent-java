@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 
 // import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence.Double;
 
+import org.jfree.chart.block.Block;
 import rescuecore2.messages.Command;
 import rescuecore2.misc.geometry.GeometryTools2D;
 import rescuecore2.misc.geometry.Line2D;
@@ -63,12 +64,18 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
             LOG.debug("Heard " + next);
         }
         updateUnexploredBuildings(changed);
-//        //if near a blockade, go through
-        Blockade target = getTargetBlockade();
-        if (target != null) {
-
-        }
-
+        //If near a blockade
+        //fly over it
+//        Blockade target = getTargetBlockade();
+//        if (target != null) {
+//            List<EntityID> path = search.breadthFirstSearch(me().getPosition(), getBlockedRoads());
+//            if (path != null) {
+//                Road road = (Road) model.getEntity(path.get(path.size() - 1));
+//                Blockade blockade = getTargetBlockade(road, -1);
+//                sendMove(time, path, blockade.getX(), blockade.getY());
+//                return;
+//            }
+//        }
         //go through targets and see if there are any civilians
         for (Human next : getTargets()) {
             if(next.getPosition().equals(location().getID())) {
@@ -77,7 +84,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
                     && !(location() instanceof Refuge)) {
                         int x = me().getX();
                         int y = me().getY();
-//                        LOG.info("Civilians detected at: " + x + ", " + y);
+                        LOG.info("Civilians detected at: " + x + ", " + y);
                         //Send coordinates to police office 
                         sendCoordinatesToPolice(1, x, y);
                         return;
@@ -88,6 +95,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
                 if(path != null){
                     LOG.info("Moving to target");
                     sendMove(time, path);
+                    // fly command
 //                    sendFly(time, path);
                     return;
                 }
