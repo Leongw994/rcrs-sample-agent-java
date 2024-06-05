@@ -66,16 +66,16 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         updateUnexploredBuildings(changed);
         //If near a blockade
         //fly over it
-//        Blockade target = getTargetBlockade();
-//        if (target != null) {
-//            List<EntityID> path = search.breadthFirstSearch(me().getPosition(), getBlockedRoads());
-//            if (path != null) {
-//                Road road = (Road) model.getEntity(path.get(path.size() - 1));
-//                Blockade blockade = getTargetBlockade(road, -1);
-//                sendMove(time, path, blockade.getX(), blockade.getY());
-//                return;
-//            }
-//        }
+        Blockade target = getTargetBlockade();
+        if (target != null) {
+            List<EntityID> path = search.breadthFirstSearch(me().getPosition(), getBlockedRoads());
+            if (path != null) {
+                Road road = (Road) model.getEntity(path.get(path.size() - 1));
+                Blockade blockade = getTargetBlockade(road, -1);
+                sendMove(time, path, blockade.getX(), blockade.getY());
+                return;
+            }
+        }
         //go through targets and see if there are any civilians
         for (Human next : getTargets()) {
             if(next.getPosition().equals(location().getID())) {
@@ -94,9 +94,9 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
                 List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
                 if(path != null){
                     LOG.info("Moving to target");
-                    sendMove(time, path);
+//                    sendMove(time, path);
                     // fly command
-//                    sendFly(time, path);
+                    sendFly(time, path);
                     return;
                 }
             }
@@ -106,13 +106,13 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
         if(path != null) {
             LOG.info("Searching map");
-            sendMove(time, path);
-//            sendFly(time, path);
+//            sendMove(time, path);
+            sendFly(time, path);
             return;
         }
         LOG.info("Flying in random direction");
-        sendMove(time, randomWalk());
-//        sendFly(time, randomWalk());
+        //sendMove(time, randomWalk());
+        sendFly(time, randomWalk());
     }
 
 
