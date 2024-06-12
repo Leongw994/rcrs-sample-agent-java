@@ -65,30 +65,30 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         }
         updateUnexploredBuildings(changed);
         //go through targets and see if there are any civilians
-//        for (Human next : getTargets()) {
-//            if(next.getPosition().equals(location().getID())) {
-//                //Target civilians that might need rescuing
-//                if((next instanceof Civilian) && next.getBuriedness() == 0
-//                    && !(location() instanceof Refuge)) {
-//                        int x = me().getX();
-//                        int y = me().getY();
-//                        LOG.info("Civilians detected at: " + x + ", " + y);
-//                        //Send coordinates to police office
-//                        sendCoordinatesToPolice(1, x, y);
-//                        return;
-//                    }
-//            } else {
-//                //try to move to target
-//                List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
-//                if(path != null){
-//                    LOG.info("Moving to target");
-////                    sendMove(time, path);
-//                    // fly command
-//                    sendFly(time, path);
-//                    return;
-//                }
-//            }
-//        }
+        for (Human next : getTargets()) {
+            if(next.getPosition().equals(location().getID())) {
+                //Target civilians that might need rescuing
+                if((next instanceof Civilian) && next.getBuriedness() == 0
+                    && !(location() instanceof Refuge)) {
+                        int x = me().getX();
+                        int y = me().getY();
+                        LOG.info("Civilians detected at: " + x + ", " + y);
+                        //Send coordinates to police office
+                        sendCoordinatesToPolice(1, x, y);
+                        return;
+                    }
+            } else {
+                //try to move to target
+                List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
+                if(path != null){
+                    LOG.info("Moving to target");
+//                    sendMove(time, path);
+                    // fly command
+                    sendFly(time, path);
+                    return;
+                }
+            }
+        }
 
         // Keep exploring
         List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
