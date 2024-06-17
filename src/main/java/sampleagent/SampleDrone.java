@@ -110,7 +110,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         return EnumSet.of(StandardEntityURN.DRONE);
     }
 
-//    private void goThroughBlockade(int time, Blockade blockade) {
+/*//    private void goThroughBlockade(int time, Blockade blockade) {
 //        Collection<StandardEntity> roads = model.getEntitiesOfType(StandardEntityURN.ROAD);
 //        List<EntityID> res = new ArrayList<EntityID>();
 //        for (StandardEntity next : roads) {
@@ -119,7 +119,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
 ////        sendClear(time, blockade.getID());
 ////        sendMove(time, randomWalk());
 //
-//    }
+//    }*/
 
     private void sendCoordinatesToPolice(int time, int x, int y) {
         Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.RESCUE_ROBOT);
