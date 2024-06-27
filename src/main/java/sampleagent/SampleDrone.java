@@ -87,6 +87,8 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
 
         // Keep exploring
         List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
+//        List<EntityID> path = new ArrayList<EntityID>();
+//        path.add(neighbours.get());
         if(path != null) {
             LOG.info("Searching map");
             sendFly(time, path);
