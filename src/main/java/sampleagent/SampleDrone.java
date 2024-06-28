@@ -44,9 +44,10 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
     @Override
     protected void postConnect() {
         super.postConnect();
-        model.indexClass(StandardEntityURN.CIVILIAN, StandardEntityURN.BUILDING,
-                StandardEntityURN.RESCUE_ROBOT, StandardEntityURN.DRONE,
-                StandardEntityURN.REFUGE, StandardEntityURN.POLICE_OFFICE);
+        model.indexClass(StandardEntityURN.CIVILIAN, StandardEntityURN.FIRE_BRIGADE,
+                StandardEntityURN.POLICE_FORCE, StandardEntityURN.AMBULANCE_TEAM,
+                StandardEntityURN.REFUGE, StandardEntityURN.HYDRANT,
+                StandardEntityURN.GAS_STATION, StandardEntityURN.BUILDING);
         unexploredBuildings = new HashSet<EntityID>(buildingIDs);
     }
 
@@ -54,7 +55,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
     protected void think(int time, ChangeSet changed, Collection<Command> heard) {
         if(time == config.getIntValue(kernel.KernelConstants.IGNORE_AGENT_COMMANDS_KEY)) {
             //subscribe to channel 1
-            sendSubscribe(time, 1);
+            sendSubscribe(time, 2);
         }
         for (Command next : heard){
             LOG.debug("Heard " + next);
@@ -87,8 +88,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
 
         // Keep exploring
         List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
-//        List<EntityID> path = new ArrayList<EntityID>();
-//        path.add(neighbours.get());
+
         if(path != null) {
             LOG.info("Searching map");
             sendFly(time, path);
@@ -102,6 +102,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
     protected EnumSet<StandardEntityURN> getRequestedEntityURNsEnum() {
         return EnumSet.of(StandardEntityURN.DRONE);
     }
+
 
     private void sendCoordinatesToPolice(int time, int x, int y) {
         Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.RESCUE_ROBOT);
