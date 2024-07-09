@@ -49,27 +49,12 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
         }
         for (Command next: heard) {
           LOG.debug("Heard " + next);
-            if (next instanceof AKSay) {
-                AKSay speak = (AKSay) next;
-                String message = new String(speak.getMessage());
-                // check if the message is from the centre
-                if(message.startsWith("Civilians")) {
-                    //extract the coordinates from the message
-                    String[] parts = message.split(" ");
-                    int x = Integer.parseInt(parts[4]);
-                    int y = Integer.parseInt(parts[8]);
-                    //Send the message
-                    LOG.info("Received the coordinates of civilians at (" + x + ", " + y + ")");
-                    //Go towards the civilians
-//                    pathToTrappedCivilians(1, x, y);
-
-                }
-              }
-            }
+        }
         // Am I near a blockade?
         Blockade target = getTargetBlockade();
         if (target != null) {
             LOG.info("Clearing blockade " + target);
+            sendMessageToPolice(1);
             sendSpeak(time, 1, ("Clearing " + target).getBytes());
             // sendClear(time, target.getX(), target.getY());
             List<Line2D> lines = GeometryTools2D.pointsToLines(
@@ -109,7 +94,14 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
         LOG.debug("Couldn't plan a path to a blocked road");
         LOG.info("Moving randomly");
         sendMove(time, randomWalk());
+    }
 
+    private void sendMessageToPolice(int time) {
+        Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.POLICE_OFFICE);
+        for (StandardEntity entity : entities) {
+            int policeID = entity.getID().getValue();
+            sendSpeak(time, policeID, "I am a Robot!".getBytes());
+        }
     }
 //
 //    private void pathToTrappedCivilians(int time, int targetX, int targetY) {
@@ -133,27 +125,12 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
 //      LOG.info("Flying randomly");
 //      sendMove(time, randomWalk());
 //
-////      //check if there are no more blockades after clearing them
-////      if (noMoreCivilians()) {
-////          sendSpeak(1, time, "All civilians have been evacuated. Requesting assistance from Police Office".getBytes());
-////      }
 //    }
 
     @Override
     protected EnumSet<StandardEntityURN> getRequestedEntityURNsEnum() {
         return EnumSet.of(StandardEntityURN.RESCUE_ROBOT);
     }
-
-    private boolean noMoreCivilians() {
-        for (EntityID next : buildingIDs) {
-            Area area = (Area) model.getEntity(next);
-            if (area != null && area.isBlockadesDefined() && !area.getBlockades().isEmpty()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
 
     private List<EntityID> getBlockedRoads() {
         Collection<
@@ -187,7 +164,6 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
             }
         }
         return null;
-
     }
 
     private Blockade getTargetBlockade(Area area, int maxDistance) {

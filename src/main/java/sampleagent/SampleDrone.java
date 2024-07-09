@@ -29,9 +29,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
     private static final Logger LOG = Logger.getLogger(SampleDrone.class);
     private Collection<EntityID> unexploredBuildings;
 
-    private static final int RANDOM_WALK_LENGTH = 3;
-
-//    private Map<EntityID, Set<EntityID>> neighbours;
+    private static final int RANDOM_WALK_LENGTH = 2;
 
     @Override
     public String toString() {
@@ -44,6 +42,8 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         model.indexClass(StandardEntityURN.FIRE_BRIGADE,
                 StandardEntityURN.POLICE_FORCE,
                 StandardEntityURN.AMBULANCE_TEAM,
+                StandardEntityURN.CIVILIAN,
+                StandardEntityURN.REFUGE,
                 StandardEntityURN.BUILDING);
         unexploredBuildings = new HashSet<EntityID>(buildingIDs);
     }
@@ -59,29 +59,28 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         }
         updateUnexploredBuildings(changed);
         //go through targets and see if there are any civilians
-//        for (Human next : getTargets()) {
-//            if(next.getPosition().equals(location().getID())) {
-//                //Target civilians that might need rescuing
-//                if((next instanceof Civilian) && next.getBuriedness() == 0
-//                    && !(location() instanceof Refuge)) {
-//                        int x = me().getX();
-//                        int y = me().getY();
-//                        LOG.info("Civilians detected at: " + x + ", " + y);
-//                        //Send coordinates to police office
-//                        sendCoordinatesToPolice(1, x, y);
-//                        return;
-//                    }
-//            } else {
-//                //try to move to target
-//                List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
-//                if(path != null){
-//                    LOG.info("Moving to target");
-//                    // fly command
-//                    sendFly(time, path);
-//                    return;
-//                }
-//            }
-//        }
+        for (Human next : getTargets()) {
+            if(next.getPosition().equals(location().getID())) {
+                if((next instanceof Civilian) && next.getBuriedness() == 0
+                    && !(location() instanceof Refuge)) {
+                        int x = me().getX();
+                        int y = me().getY();
+                        LOG.info("Civilians detected at: " + x + ", " + y);
+                        //Send coordinates to police office
+                        sendCoordinatesToPolice(1, x, y);
+                        return;
+                    }
+            } else {
+                //try to move to target
+                List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
+                if(path != null){
+                    LOG.info("Moving to target");
+                    // fly command
+                    sendFly(time, path);
+                    return;
+                }
+            }
+        }
 //
 //        // Keep exploring
 //        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
@@ -116,20 +115,24 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
 //                if ( seen.contains( next ) ) {
 //                    continue;
 //                }
-                current = next;
-                found = true;
-                break;
+                if (!seen.contains(next)){
+                    current = next;
+                    found = true;
+                    break;
+                }
             }
             if ( !found ) {
-                // We reached a dead-end.
-                break;
+                seen.clear();
+                Collections.shuffle(possible, random);
+                current = possible.get(0);
+//                break;
             }
         }
         return result;
     }
 
     private void sendCoordinatesToPolice(int time, int x, int y) {
-        Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.RESCUE_ROBOT);
+        Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.POLICE_OFFICE);
         for (StandardEntity entity : entities) {
             int policeOfficeId = entity.getID().getValue();
             sendSpeak(time, policeOfficeId, ("Civilians detected at " + x + ", " + y).getBytes());

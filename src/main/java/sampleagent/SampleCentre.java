@@ -37,21 +37,22 @@ public class SampleCentre extends StandardAgent<Building> {
     }
     for (Command next : heard) {
       LOG.debug("Heard " + next);
-      if (next instanceof AKSay) {
+            if (next instanceof AKSay) {
         AKSay ksay = (AKSay) next;
         String message = new String(ksay.getMessage());
-        //check if the message is from the drone agent 
+        //check if the message is from the drone agent
         if(message.startsWith("Civilians detected at")) {
           // extract the coordinates from the message
           String[] parts = message.split(" ");
           int x = Integer.parseInt(parts[4]);
           int y = Integer.parseInt(parts[8]);
           LOG.info("Received coordinates of civilians: (" + x + "," + y + ")");
-          //send coordinates to the rescue robot 
+          //send coordinates to the rescue robot
           sendCoordinatesToRescueRobot(1, x, y);
         }
       }
     }
+
     sendRest(time);
   }
 
@@ -59,8 +60,7 @@ public class SampleCentre extends StandardAgent<Building> {
   @Override
   protected EnumSet<StandardEntityURN> getRequestedEntityURNsEnum() {
     return EnumSet.of(StandardEntityURN.FIRE_STATION,
-        StandardEntityURN.AMBULANCE_CENTRE, StandardEntityURN.POLICE_OFFICE,
-        StandardEntityURN.DRONE, StandardEntityURN.RESCUE_ROBOT);
+        StandardEntityURN.AMBULANCE_CENTRE, StandardEntityURN.POLICE_OFFICE);
   }
 
   private void sendCoordinatesToRescueRobot(int time, int x, int y) {
@@ -70,7 +70,7 @@ public class SampleCentre extends StandardAgent<Building> {
   }
 
   private int getRescueRobotID() {
-    Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.POLICE_FORCE);
+    Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.RESCUE_ROBOT);
     for (StandardEntity entity : entities) {
       int rescueRobotID = entity.getID().getValue();
       return rescueRobotID;
