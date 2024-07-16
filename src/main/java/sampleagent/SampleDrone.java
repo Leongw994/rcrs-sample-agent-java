@@ -24,7 +24,7 @@ import rescuecore2.worldmodel.EntityID;
 import sample.AbstractSampleAgent;
 import sample.DistanceSorter;
 
-public class SampleDrone extends AbstractSampleAgent<Drone> {
+public class  SampleDrone extends AbstractSampleAgent<Drone> {
 
     private static final Logger LOG = Logger.getLogger(SampleDrone.class);
     private Collection<EntityID> unexploredBuildings;
@@ -44,6 +44,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
                 StandardEntityURN.AMBULANCE_TEAM,
                 StandardEntityURN.CIVILIAN,
                 StandardEntityURN.REFUGE,
+                StandardEntityURN.POLICE_OFFICE,
                 StandardEntityURN.BUILDING);
         unexploredBuildings = new HashSet<EntityID>(buildingIDs);
     }
@@ -67,7 +68,8 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
                         int y = me().getY();
                         LOG.info("Civilians detected at: " + x + ", " + y);
                         //Send coordinates to police office
-                        sendCoordinatesToPolice(1, x, y);
+//                        sendCoordinatesToPolice(1, x, y);
+                        sendTell(time, ("Civilians detected at " + x + ", " + y).getBytes());
                         return;
                     }
             } else {
@@ -115,11 +117,10 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
 //                if ( seen.contains( next ) ) {
 //                    continue;
 //                }
-                if (!seen.contains(next)){
-                    current = next;
-                    found = true;
-                    break;
-                }
+                current = next;
+                found = true;
+                break;
+
             }
             if ( !found ) {
                 seen.clear();
@@ -131,14 +132,14 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         return result;
     }
 
-    private void sendCoordinatesToPolice(int time, int x, int y) {
-        Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.POLICE_OFFICE);
-        for (StandardEntity entity : entities) {
-            int policeOfficeId = entity.getID().getValue();
-            sendSpeak(time, policeOfficeId, ("Civilians detected at " + x + ", " + y).getBytes());
-            LOG.info("Send help!");
-        }        
-    }
+//    private void sendCoordinatesToPolice(int time, int x, int y) {
+//        Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.POLICE_OFFICE);
+//        for (StandardEntity entity : entities) {
+//            int policeOfficeId = entity.getID().getValue();
+//            sendSpeak(time, policeOfficeId, ("Civilians detected at " + x + ", " + y).getBytes());
+//            LOG.info("Send help!");
+//        }
+//    }
 
     private List<Human> getTargets() {
         List<Human> targets = new ArrayList<Human>();

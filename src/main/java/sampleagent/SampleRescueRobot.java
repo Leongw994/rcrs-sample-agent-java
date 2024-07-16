@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import rescuecore.commands.AKSay;
+import rescuecore.commands.AKTell;
 import rescuecore2.messages.Command;
 import rescuecore2.misc.geometry.GeometryTools2D;
 import rescuecore2.misc.geometry.Line2D;
@@ -47,14 +48,28 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
           //Subscribe to channel 1
           sendSubscribe(time, 1);
         }
-        for (Command next: heard) {
-          LOG.debug("Heard " + next);
+//        handleHearCommands(time, heard);
+        for (Command next : heard) {
+            LOG.info("Heard" + next);
+            if (next instanceof AKSpeak) {
+                AKSpeak tell = (AKSpeak) next;
+                String message = new String(tell.getContent());
+                if (message.startsWith("Coordinates")) {
+                    try {
+                        handleGoCommand(time, message);
+                        LOG.info("Going to coordinates");
+                    } catch (NumberFormatException e) {
+                        LOG.error("Failed to parse coordinates: ", e);
+                    }
+                }
+            }
         }
+
         // Am I near a blockade?
         Blockade target = getTargetBlockade();
         if (target != null) {
             LOG.info("Clearing blockade " + target);
-            sendMessageToPolice(1);
+//            sendMessageToPolice(1);
             sendSpeak(time, 1, ("Clearing " + target).getBytes());
             // sendClear(time, target.getX(), target.getY());
             List<Line2D> lines = GeometryTools2D.pointsToLines(
@@ -78,54 +93,78 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
                     (int) (me().getY() + v.getY()));
             return;
         }
+        //Am I near a civilian?
+
 
         // Plan a path to a blocked area
-        List<EntityID> path = search.breadthFirstSearch(me().getPosition(),
-                getBlockedRoads());
-        if (path != null) {
-            LOG.info("Moving to target");
-            Road r = (Road) model.getEntity(path.get(path.size() - 1));
-            Blockade b = getTargetBlockade(r, -1);
-            sendMove(time, path, b.getX(), b.getY());
-            LOG.debug("Path: " + path);
-            LOG.debug("Target coordinates: " + b.getX() + ", " + b.getY());
-            return;
-        }
-        LOG.debug("Couldn't plan a path to a blocked road");
-        LOG.info("Moving randomly");
+
+//        List<EntityID> path = search.breadthFirstSearch(me().getPosition(),
+//                getBlockedRoads());
+//        if (path != null) {
+//            LOG.info("Moving to target");
+//            Road r = (Road) model.getEntity(path.get(path.size() - 1));
+//            Blockade b = getTargetBlockade(r, -1);
+//            sendMove(time, path, b.getX(), b.getY());
+//            LOG.debug("Path: " + path);
+//            LOG.debug("Target coordinates: " + b.getX() + ", " + b.getY());
+//            return;
+//        }
+//        LOG.debug("Couldn't plan a path to a blocked road");
+//        LOG.info("Moving randomly");
         sendMove(time, randomWalk());
     }
 
-    private void sendMessageToPolice(int time) {
-        Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.POLICE_OFFICE);
-        for (StandardEntity entity : entities) {
-            int policeID = entity.getID().getValue();
-            sendSpeak(time, policeID, "I am a Robot!".getBytes());
+//    private void handleHearCommands(int time, Collection<Command> heard) {
+//        for (Command next : heard) {
+//            LOG.debug("Heard " + next);
+//            if (next instanceof AKTell say) {
+//                String message = new String(say.getMessage());
+//                if (message.startsWith("Go")) {
+//                    try {
+//                        handleGoCommand(time, message);
+//                    } catch (NumberFormatException e) {
+//                        LOG.error("Failed to parse coordinates from message: " + message, e);
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+    private void handleGoCommand(int time, String message) {
+        String[] parts = message.split(" ");
+        LOG.info("message length: " + parts.length + " " + message);
+        if(parts.length == 3) {
+            int x = Integer.parseInt(parts[1]);
+            int y = Integer.parseInt(parts[2]);
+            LOG.info("Received coordinates of civilians at: " + x + ", " + y);
+            List<EntityID> path = search.breadthFirstSearch(me().getPosition(), getBlockedRoads());
+            if (path != null) {
+                LOG.info("Moving to target");
+                Road road = (Road) model.getEntity(path.get(path.size() - 1));
+                Blockade blockade = getTargetBlockade(road, -1);
+                if (road != null) {
+                    int targetX = blockade.getX();
+                    int targetY = blockade.getY();
+                    sendMove(time, path, targetX, targetY);
+                    LOG.debug("Path to coordinates: " + path);
+                } else {
+                    LOG.error("Target road is null, moving randomly");
+                    sendMove(time, randomWalk());
+                }
+            }
         }
     }
-//
-//    private void pathToTrappedCivilians(int time, int targetX, int targetY) {
-//      LOG.info("Clearing blockades ");
-//      //plan a path to an area of trapped civilians
-//      List<EntityID> path = search.breadthFirstSearch(me().getPosition(), getBlockedRoads());
-//      if(path != null) {
-//          LOG.info("Moving to target");
-//          Road road = (Road) model.getEntity(path.get(path.size() - 1));
-//          Blockade blockade = getTargetBlockade(road, -1);
-//          targetX = blockade.getX();
-//          targetY = blockade.getY();
-//          sendMove(time, path, targetX, targetY);
-//          LOG.debug("Path: " + path);
-//          LOG.debug("Target coordinates of trapped civilians: " + targetX + ", " + targetY);
-//          return;
-//      }
-//
-//      //Could not find a path
-//      LOG.debug("Could not find a path to trapped civilains");
-//      LOG.info("Flying randomly");
-//      sendMove(time, randomWalk());
-//
-//    }
+
+
+    private List<EntityID> getTargetRoads() {
+        Collection<StandardEntity> e = model.getEntitiesOfType(StandardEntityURN.ROAD);
+        List<EntityID> result = new ArrayList<EntityID>();
+        for (StandardEntity next : e) {
+            Road r = (Road) next;
+            result.add(r.getID());
+        }
+        return result;
+    }
 
     @Override
     protected EnumSet<StandardEntityURN> getRequestedEntityURNsEnum() {
