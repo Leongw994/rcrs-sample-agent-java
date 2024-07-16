@@ -1,11 +1,6 @@
 package sampleagent;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 // import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -35,6 +30,8 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
     private Collection<EntityID> unexploredBuildings;
 
 
+    private static final int             RANDOM_WALK_LENGTH        = 50;
+
 
     @Override
     public String toString() {
@@ -62,40 +59,68 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         }
         updateUnexploredBuildings(changed);
         //go through targets and see if there are any civilians
-        for (Human next : getTargets()) {
-            if(next.getPosition().equals(location().getID())) {
-                //Target civilians that might need rescuing
-                if((next instanceof Civilian) && next.getBuriedness() == 0
-                    && !(location() instanceof Refuge)) {
-                        int x = me().getX();
-                        int y = me().getY();
-                        LOG.info("Civilians detected at: " + x + ", " + y);
-                        //Send coordinates to police office
-                        sendCoordinatesToPolice(1, x, y);
-                        return;
-                    }
-            } else {
-                //try to move to target
-                List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
-                if(path != null){
-                    LOG.info("Moving to target");
-                    // fly command
-                    sendFly(time, path);
-                    return;
-                }
+//        for (Human next : getTargets()) {
+//            if(next.getPosition().equals(location().getID())) {
+//                //Target civilians that might need rescuing
+//                if((next instanceof Civilian) && next.getBuriedness() == 0
+//                    && !(location() instanceof Refuge)) {
+//                        int x = me().getX();
+//                        int y = me().getY();
+//                        LOG.info("Civilians detected at: " + x + ", " + y);
+//                        //Send coordinates to police office
+////                        sendCoordinatesToPolice(1, x, y);
+//                        return;
+//                    }
+//            } else {
+//                //try to move to target
+//                List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
+//                if(path != null){
+//                    LOG.info("Moving to target");
+//                    // fly command
+//                    sendFly(time, path);
+//                    return;
+//                }
+//            }
+//        }
+//
+//        // Keep exploring
+//        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
+//
+//        if(path != null) {
+//            LOG.info("Searching map");
+//            sendFly(time, path);
+//            return;
+//        }
+//        LOG.info("Flying in random direction");
+        sendFly(time, randomWalk());
+    }
+
+    @Override
+    protected List<EntityID> randomWalk() {
+        List<EntityID> result = new ArrayList<EntityID>( RANDOM_WALK_LENGTH );
+        Set<EntityID> seen = new HashSet<EntityID>();
+        EntityID current = ( (Robot) me() ).getPosition();
+        for ( int i = 0; i < RANDOM_WALK_LENGTH; ++i ) {
+            result.add( current );
+            seen.add( current );
+            List<EntityID> possible = new ArrayList<EntityID>(
+                    neighbours.get( current ) );
+            Collections.shuffle( possible, random );
+            boolean found = false;
+            for ( EntityID next : possible ) {
+//                if ( seen.contains( next ) ) {
+//                    continue;
+//                }
+                current = next;
+                found = true;
+                break;
+            }
+            if ( !found ) {
+                // We reached a dead-end.
+                break;
             }
         }
-
-        // Keep exploring
-        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
-
-        if(path != null) {
-            LOG.info("Searching map");
-            sendFly(time, path);
-            return;
-        }
-        LOG.info("Flying in random direction");
-        sendFly(time, randomFly());
+        return result;
     }
 
     @Override
@@ -104,14 +129,14 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
     }
 
 
-    private void sendCoordinatesToPolice(int time, int x, int y) {
-        Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.RESCUE_ROBOT);
-        for (StandardEntity entity : entities) {
-            int policeOfficeId = entity.getID().getValue();
-            sendSpeak(time, policeOfficeId, ("Civilians detected at " + x + ", " + y).getBytes());
-            LOG.info("Send help!");
-        }        
-    }
+//    private void sendCoordinatesToPolice(int time, int x, int y) {
+//        Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.RESCUE_ROBOT);
+//        for (StandardEntity entity : entities) {
+//            int policeOfficeId = entity.getID().getValue();
+//            sendSpeak(time, policeOfficeId, ("Civilians detected at " + x + ", " + y).getBytes());
+//            LOG.info("Send help!");
+//        }
+//    }
 
     private List<Human> getTargets() {
         List<Human> targets = new ArrayList<Human>();
