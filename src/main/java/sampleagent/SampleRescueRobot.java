@@ -56,7 +56,7 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
                 String message = new String(tell.getContent());
                 if (message.startsWith("Coordinates")) {
                     try {
-                        handleGoCommand(time, message);
+//                        handleGoCommand(time, message);
                         LOG.info("Going to coordinates");
                     } catch (NumberFormatException e) {
                         LOG.error("Failed to parse coordinates: ", e);
@@ -98,19 +98,19 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
 
         // Plan a path to a blocked area
 
-//        List<EntityID> path = search.breadthFirstSearch(me().getPosition(),
-//                getBlockedRoads());
-//        if (path != null) {
-//            LOG.info("Moving to target");
-//            Road r = (Road) model.getEntity(path.get(path.size() - 1));
-//            Blockade b = getTargetBlockade(r, -1);
-//            sendMove(time, path, b.getX(), b.getY());
-//            LOG.debug("Path: " + path);
-//            LOG.debug("Target coordinates: " + b.getX() + ", " + b.getY());
-//            return;
-//        }
-//        LOG.debug("Couldn't plan a path to a blocked road");
-//        LOG.info("Moving randomly");
+        List<EntityID> path = search.breadthFirstSearch(me().getPosition(),
+                getBlockedRoads());
+        if (path != null) {
+            LOG.info("Moving to target");
+            Road r = (Road) model.getEntity(path.get(path.size() - 1));
+            Blockade b = getTargetBlockade(r, -1);
+            sendMove(time, path, b.getX(), b.getY());
+            LOG.debug("Path: " + path);
+            LOG.debug("Target coordinates: " + b.getX() + ", " + b.getY());
+            return;
+        }
+        LOG.debug("Couldn't plan a path to a blocked road");
+        LOG.info("Moving randomly");
         sendMove(time, randomWalk());
     }
 
