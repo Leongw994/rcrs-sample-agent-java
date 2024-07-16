@@ -1,6 +1,11 @@
 package sampleagent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
 // import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -24,12 +29,12 @@ import rescuecore2.worldmodel.EntityID;
 import sample.AbstractSampleAgent;
 import sample.DistanceSorter;
 
-public class  SampleDrone extends AbstractSampleAgent<Drone> {
+public class SampleDrone extends AbstractSampleAgent<Drone> {
 
     private static final Logger LOG = Logger.getLogger(SampleDrone.class);
     private Collection<EntityID> unexploredBuildings;
 
-    private static final int RANDOM_WALK_LENGTH = 2;
+
 
     @Override
     public String toString() {
@@ -39,13 +44,10 @@ public class  SampleDrone extends AbstractSampleAgent<Drone> {
     @Override
     protected void postConnect() {
         super.postConnect();
-        model.indexClass(StandardEntityURN.FIRE_BRIGADE,
-                StandardEntityURN.POLICE_FORCE,
-                StandardEntityURN.AMBULANCE_TEAM,
-                StandardEntityURN.CIVILIAN,
-                StandardEntityURN.REFUGE,
-                StandardEntityURN.POLICE_OFFICE,
-                StandardEntityURN.BUILDING);
+        model.indexClass(StandardEntityURN.CIVILIAN, StandardEntityURN.FIRE_BRIGADE,
+                StandardEntityURN.POLICE_FORCE, StandardEntityURN.AMBULANCE_TEAM,
+                StandardEntityURN.REFUGE, StandardEntityURN.HYDRANT,
+                StandardEntityURN.GAS_STATION, StandardEntityURN.BUILDING);
         unexploredBuildings = new HashSet<EntityID>(buildingIDs);
     }
 
@@ -53,7 +55,7 @@ public class  SampleDrone extends AbstractSampleAgent<Drone> {
     protected void think(int time, ChangeSet changed, Collection<Command> heard) {
         if(time == config.getIntValue(kernel.KernelConstants.IGNORE_AGENT_COMMANDS_KEY)) {
             //subscribe to channel 1
-            sendSubscribe(time, 1);
+            sendSubscribe(time, 2);
         }
         for (Command next : heard){
             LOG.debug("Heard " + next);
@@ -62,14 +64,14 @@ public class  SampleDrone extends AbstractSampleAgent<Drone> {
         //go through targets and see if there are any civilians
         for (Human next : getTargets()) {
             if(next.getPosition().equals(location().getID())) {
+                //Target civilians that might need rescuing
                 if((next instanceof Civilian) && next.getBuriedness() == 0
                     && !(location() instanceof Refuge)) {
                         int x = me().getX();
                         int y = me().getY();
                         LOG.info("Civilians detected at: " + x + ", " + y);
                         //Send coordinates to police office
-//                        sendCoordinatesToPolice(1, x, y);
-                        sendTell(time, ("Civilians detected at " + x + ", " + y).getBytes());
+                        sendCoordinatesToPolice(1, x, y);
                         return;
                     }
             } else {
@@ -83,16 +85,17 @@ public class  SampleDrone extends AbstractSampleAgent<Drone> {
                 }
             }
         }
-//
-//        // Keep exploring
-//        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
-//        if(path != null) {
-//            LOG.info("Searching map");
-//            sendFly(time, path);
-//            return;
-//        }
+
+        // Keep exploring
+        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
+
+        if(path != null) {
+            LOG.info("Searching map");
+            sendFly(time, path);
+            return;
+        }
         LOG.info("Flying in random direction");
-        sendFly(time, randomWalk());
+        sendFly(time, randomFly());
     }
 
     @Override
@@ -100,46 +103,15 @@ public class  SampleDrone extends AbstractSampleAgent<Drone> {
         return EnumSet.of(StandardEntityURN.DRONE);
     }
 
-    @Override
-    protected List<EntityID> randomWalk() {
-        List<EntityID> result = new ArrayList<EntityID>( RANDOM_WALK_LENGTH );
-        Set<EntityID> seen = new HashSet<EntityID>();
-        EntityID current = ( (Robot) me() ).getPosition();
 
-        for ( int i = 0; i < RANDOM_WALK_LENGTH; ++i ) {
-            result.add( current );
-            seen.add( current );
-            List<EntityID> possible = new ArrayList<EntityID>(
-                    neighbours.get( current ) );
-            Collections.shuffle( possible, random );
-            boolean found = false;
-            for ( EntityID next : possible ) {
-//                if ( seen.contains( next ) ) {
-//                    continue;
-//                }
-                current = next;
-                found = true;
-                break;
-
-            }
-            if ( !found ) {
-                seen.clear();
-                Collections.shuffle(possible, random);
-                current = possible.get(0);
-//                break;
-            }
-        }
-        return result;
+    private void sendCoordinatesToPolice(int time, int x, int y) {
+        Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.RESCUE_ROBOT);
+        for (StandardEntity entity : entities) {
+            int policeOfficeId = entity.getID().getValue();
+            sendSpeak(time, policeOfficeId, ("Civilians detected at " + x + ", " + y).getBytes());
+            LOG.info("Send help!");
+        }        
     }
-
-//    private void sendCoordinatesToPolice(int time, int x, int y) {
-//        Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.POLICE_OFFICE);
-//        for (StandardEntity entity : entities) {
-//            int policeOfficeId = entity.getID().getValue();
-//            sendSpeak(time, policeOfficeId, ("Civilians detected at " + x + ", " + y).getBytes());
-//            LOG.info("Send help!");
-//        }
-//    }
 
     private List<Human> getTargets() {
         List<Human> targets = new ArrayList<Human>();
