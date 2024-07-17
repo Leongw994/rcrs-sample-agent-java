@@ -6,6 +6,7 @@ import java.util.EnumSet;
 import java.util.List;
 import org.apache.log4j.Logger;
 
+import org.jfree.chart.block.Block;
 import rescuecore.commands.AKSay;
 import rescuecore.commands.AKTell;
 import rescuecore2.messages.Command;
@@ -29,6 +30,7 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
     private static final String DISTANCE_KEY = "clear.repair.distance";
 
     private int distance;
+    private Point2D targetCoordinates;
 
     @Override
     public String toString() {
@@ -48,7 +50,6 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
           //Subscribe to channel 1
           sendSubscribe(time, 1);
         }
-//        handleHearCommands(time, heard);
         for (Command next : heard) {
             LOG.info("Heard" + next);
             if (next instanceof AKSpeak) {
@@ -56,7 +57,7 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
                 String message = new String(tell.getContent());
                 if (message.startsWith("Coordinates")) {
                     try {
-//                        handleGoCommand(time, message);
+                        handleGoCommand(message);
                         LOG.info("Going to coordinates");
                     } catch (NumberFormatException e) {
                         LOG.error("Failed to parse coordinates: ", e);
@@ -64,106 +65,131 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
                 }
             }
         }
-
-        // Am I near a blockade?
-        Blockade target = getTargetBlockade();
-        if (target != null) {
-            LOG.info("Clearing blockade " + target);
-//            sendMessageToPolice(1);
-            sendSpeak(time, 1, ("Clearing " + target).getBytes());
-            // sendClear(time, target.getX(), target.getY());
-            List<Line2D> lines = GeometryTools2D.pointsToLines(
-                    GeometryTools2D.vertexArrayToPoints(target.getApexes()), true);
-            double best = Double.MAX_VALUE;
-            Point2D bestPoint = null;
-            Point2D origin = new Point2D(me().getX(), me().getY());
-            for (Line2D next : lines) {
-                Point2D closest = GeometryTools2D.getClosestPointOnSegment(next,
-                        origin);
-                double d = GeometryTools2D.getDistance(origin, closest);
-                if (d < best) {
-                    best = d;
-                    bestPoint = closest;
-                }
-            }
-            @SuppressWarnings("null")
-            Vector2D v = bestPoint.minus(new Point2D(me().getX(), me().getY()));
-            v = v.normalised().scale(1000000);
-            sendClear(time, (int) (me().getX() + v.getX()),
-                    (int) (me().getY() + v.getY()));
-            return;
+        if (targetCoordinates != null) {
+            moveToTarget(time);
+        } else {
+            sendMove(time, randomWalk());
         }
-        //Am I near a civilian?
 
+//        // Am I near a blockade?
+//        Blockade target = getTargetBlockade();
+//        if (target != null) {
+//            LOG.info("Clearing blockade " + target);
+////            sendMessageToPolice(1);
+//            sendSpeak(time, 1, ("Clearing " + target).getBytes());
+//            // sendClear(time, target.getX(), target.getY());
+//            List<Line2D> lines = GeometryTools2D.pointsToLines(
+//                    GeometryTools2D.vertexArrayToPoints(target.getApexes()), true);
+//            double best = Double.MAX_VALUE;
+//            Point2D bestPoint = null;
+//            Point2D origin = new Point2D(me().getX(), me().getY());
+//            for (Line2D next : lines) {
+//                Point2D closest = GeometryTools2D.getClosestPointOnSegment(next,
+//                        origin);
+//                double d = GeometryTools2D.getDistance(origin, closest);
+//                if (d < best) {
+//                    best = d;
+//                    bestPoint = closest;
+//                }
+//            }
+//            @SuppressWarnings("null")
+//            Vector2D v = bestPoint.minus(new Point2D(me().getX(), me().getY()));
+//            v = v.normalised().scale(1000000);
+//            sendClear(time, (int) (me().getX() + v.getX()),
+//                    (int) (me().getY() + v.getY()));
+//            return;
+//        }
 
         // Plan a path to a blocked area
 
-        List<EntityID> path = search.breadthFirstSearch(me().getPosition(),
-                getBlockedRoads());
-        if (path != null) {
-            LOG.info("Moving to target");
-            Road r = (Road) model.getEntity(path.get(path.size() - 1));
-            Blockade b = getTargetBlockade(r, -1);
-            sendMove(time, path, b.getX(), b.getY());
-            LOG.debug("Path: " + path);
-            LOG.debug("Target coordinates: " + b.getX() + ", " + b.getY());
-            return;
-        }
-        LOG.debug("Couldn't plan a path to a blocked road");
-        LOG.info("Moving randomly");
-        sendMove(time, randomWalk());
+//        List<EntityID> path = search.breadthFirstSearch(me().getPosition(),
+//                getBlockedRoads());
+//        if (path != null) {
+//            LOG.info("Moving to target");
+//            Road r = (Road) model.getEntity(path.get(path.size() - 1));
+//            Blockade b = getTargetBlockade(r, -1);
+//            sendMove(time, path, b.getX(), b.getY());
+//            LOG.debug("Path: " + path);
+//            LOG.debug("Target coordinates: " + b.getX() + ", " + b.getY());
+//            return;
+//        }
+//        LOG.debug("Couldn't plan a path to a blocked road");
+//        LOG.info("Moving randomly");
+//        sendMove(time, randomWalk());
     }
 
-//    private void handleHearCommands(int time, Collection<Command> heard) {
-//        for (Command next : heard) {
-//            LOG.debug("Heard " + next);
-//            if (next instanceof AKTell say) {
-//                String message = new String(say.getMessage());
-//                if (message.startsWith("Go")) {
-//                    try {
-//                        handleGoCommand(time, message);
-//                    } catch (NumberFormatException e) {
-//                        LOG.error("Failed to parse coordinates from message: " + message, e);
-//                    }
-//                }
-//            }
-//        }
-//    }
 
-    private void handleGoCommand(int time, String message) {
+    private void handleGoCommand(String message) {
         String[] parts = message.split(" ");
-        LOG.info("message length: " + parts.length + " " + message);
+//        LOG.info("message length: " + parts.length + " " + message);
         if(parts.length == 3) {
             int x = Integer.parseInt(parts[1]);
             int y = Integer.parseInt(parts[2]);
+            targetCoordinates = new Point2D(x, y);
             LOG.info("Received coordinates of civilians at: " + x + ", " + y);
-            List<EntityID> path = search.breadthFirstSearch(me().getPosition(), getBlockedRoads());
-            if (path != null) {
-                LOG.info("Moving to target");
-                Road road = (Road) model.getEntity(path.get(path.size() - 1));
-                Blockade blockade = getTargetBlockade(road, -1);
-                if (road != null) {
-                    int targetX = blockade.getX();
-                    int targetY = blockade.getY();
-                    sendMove(time, path, targetX, targetY);
-                    LOG.debug("Path to coordinates: " + path);
-                } else {
-                    LOG.error("Target road is null, moving randomly");
-                    sendMove(time, randomWalk());
-                }
-            }
         }
     }
 
-
-    private List<EntityID> getTargetRoads() {
-        Collection<StandardEntity> e = model.getEntitiesOfType(StandardEntityURN.ROAD);
-        List<EntityID> result = new ArrayList<EntityID>();
-        for (StandardEntity next : e) {
-            Road r = (Road) next;
-            result.add(r.getID());
+    private void moveToTarget(int time) {
+        Blockade target = getTargetBlockade();
+        if (target != null) {
+            LOG.info("Clearing blockade " + target);
+            sendSpeak(time, 1, ("Clearing " + target).getBytes());
+            clearBlockade(time, target);
         }
-        return result;
+        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), getRoadID(targetCoordinates));
+        if (path != null) {
+            LOG.info("Moving to target");
+            int x = (int) targetCoordinates.getX();
+            int y = (int) targetCoordinates.getY();
+            sendMove(time, path, x, y);
+            LOG.info("Going to coordinates: X: " + x + " Y: " + y);
+        } else {
+            LOG.error("No path to target found, moving randomly");
+            sendMove(time, randomWalk());
+        }
+    }
+
+    private void clearBlockade(int time, Blockade target) {
+        List<Line2D> lines = GeometryTools2D.pointsToLines(
+                GeometryTools2D.vertexArrayToPoints(target.getApexes()), true);
+        double best = Double.MAX_VALUE;
+        Point2D bestPoint = null;
+        Point2D origin = new Point2D(me().getX(), me().getY());
+        for (Line2D next : lines) {
+            Point2D closest = GeometryTools2D.getClosestPointOnSegment(next,
+                    origin);
+            double d = GeometryTools2D.getDistance(origin, closest);
+            if (d < best) {
+                best = d;
+                bestPoint = closest;
+            }
+        }
+        @SuppressWarnings("null")
+        Vector2D v = bestPoint.minus(new Point2D(me().getX(), me().getY()));
+        v = v.normalised().scale(1000000);
+        sendClear(time, (int) (me().getX() + v.getX()), (int) (me().getY() + v.getY()));
+    }
+
+    private EntityID getRoadID(Point2D p) {
+        for (StandardEntity entity : model.getEntitiesOfType(StandardEntityURN.ROAD)) {
+            Road road = (Road) entity;
+            if (road.getX() == p.getX() && road.getY() == p.getY()) {
+                return road.getID();
+            }
+        }
+        //if no exact match is found, return the closest road
+        Road closestRoad = null;
+        double closestDistance = Double.MAX_VALUE;
+        for (StandardEntity entity : model.getEntitiesOfType(StandardEntityURN.ROAD)) {
+            Road road = (Road) entity;
+            double distance = Math.sqrt(Math.pow(road.getX() - p.getX(), 2) + Math.pow(road.getY() - p.getY(), 2));
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestRoad = road;
+            }
+        }
+        return closestRoad != null ? closestRoad.getID() : null;
     }
 
     @Override
