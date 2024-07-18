@@ -41,11 +41,11 @@ public class SampleCentre extends StandardAgent<Building> {
 //      if (next instanceof AKTell) {
 //        AKTell tell = (AKTell) next;
 //        String message = new String(tell.getMessage());
-//        if (message.startsWith("Civilians detected at")) {
+//        if (message.startsWith("Coordinates")) {
 //          String[] parts = message.split(" ");
 //          try {
-//            int x = Integer.parseInt(parts[3]);
-//            int y = Integer.parseInt(parts[5]);
+//            int x = Integer.parseInt(parts[1]);
+//            int y = Integer.parseInt(parts[2]);
 //            LOG.info("Received coordinates of trapped civilians at: " + x + ", " + y);
 //          } catch (NumberFormatException ex) {
 //            LOG.error("Failed to parse coordinates from message: " + message + " ERROR: " + ex);

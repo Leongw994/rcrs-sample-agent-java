@@ -50,46 +50,50 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
     protected void think(int time, ChangeSet changed, Collection<Command> heard) {
         if(time == config.getIntValue(kernel.KernelConstants.IGNORE_AGENT_COMMANDS_KEY)) {
             //subscribe to channel 1
-            sendSubscribe(time, 2);
+            sendSubscribe(time, 1);
         }
         for (Command next : heard){
             LOG.debug("Heard " + next);
         }
         updateUnexploredBuildings(changed);
-        //go through targets and see if there are any civilians
-        /*
-        for (Human next : getTargets()) {
-            if(next.getPosition().equals(location().getID())) {
-                //Target civilians that might need rescuing
-                if((next instanceof Civilian) && next.getBuriedness() == 0
-                    && !(location() instanceof Refuge)) {
-                        int x = me().getX();
-                        int y = me().getY();
-                        LOG.info("Civilians detected at: " + x + ", " + y);
-                        //Send coordinates to police office
-                        sendCoordinatesToPolice(1, x, y);
-                        return;
-                }
-            } else {
-                //try to move to target
-                List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
-                if(path != null){
-                    LOG.info("Moving to target");
-                    // fly command
-                    sendFly(time, path);
-                    return;
-                }
-            }
+        //if stuck in the building
+        if (location() instanceof Building) {
+            LOG.info("Stuck inside the building");
         }
+        //go through targets and see if there are any civilians
+//        for (Human next : getTargets()) {
+//            if(next.getPosition().equals(location().getID())) {
+//                //Target civilians that might need rescuing
+//                if((next instanceof Civilian) && next.getBuriedness() == 0
+//                    && !(location() instanceof Refuge)) {
+//                        int x = me().getX();
+//                        int y = me().getY();
+//                        LOG.info("Civilians detected at: X: " + x + ", Y: " + y);
+//                        //Send coordinates to police office
+//                        String message = String.format("Coordinates: %d %d", x, y);
+//                        sendSpeak(time, 1, message.getBytes());
+//                        return;
+//                }
+//            } else {
+//                //try to move to target
+//                List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
+//                if(path != null){
+//                    LOG.info("Moving to target");
+//                    // fly command
+//                    sendFly(time, path);
+//                    return;
+//                }
+//            }
+//        }
+//
+//        // explore unvisited buildings
+//        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
+//        if(path != null) {
+//            LOG.info("Searching map");
+//            sendFly(time, path);
+//            return;
+//        }
 
-        // Keep exploring
-        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
-
-        if(path != null) {
-            LOG.info("Searching map");
-            sendFly(time, path);
-            return;
-            }*/
         LOG.info("Flying in random direction");
         sendFly(time, randomWalk());
     }
@@ -112,12 +116,11 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
             Collections.shuffle(possible, random);
             boolean found = false;
             for ( EntityID next : possible ) {
-                //if ( seen.contains( next )) {
-                //  continue;
-                //}
-                current = next;
-                found = true;
-                break;
+                if (!seen.contains(next)) {
+                    current = next;
+                    found = true;
+                    break;
+                }
             }
             if (!found) {
                 //dead end
@@ -128,14 +131,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         return result;
     }
 
-    private void sendCoordinatesToPolice(int time, int x, int y) {
-        Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.RESCUE_ROBOT);
-        for (StandardEntity entity : entities) {
-            int policeOfficeId = entity.getID().getValue();
-            sendSpeak(time, policeOfficeId, ("Civilians detected at " + x + ", " + y).getBytes());
-            LOG.info("Send help!");
-        }
-    }
+
 
     private List<Human> getTargets() {
         List<Human> targets = new ArrayList<Human>();
