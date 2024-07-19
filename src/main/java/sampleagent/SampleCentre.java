@@ -13,7 +13,9 @@ import rescuecore2.standard.components.StandardAgent;
 import rescuecore2.standard.entities.Building;
 import rescuecore2.standard.entities.StandardEntity;
 import rescuecore2.standard.entities.StandardEntityURN;
+import rescuecore2.standard.messages.AKSpeak;
 import rescuecore2.worldmodel.ChangeSet;
+import rescuecore2.misc.geometry.Point2D;
 //import rescuecore2.worldmodel.EntityID;
 
 /**
@@ -22,6 +24,8 @@ import rescuecore2.worldmodel.ChangeSet;
 public class SampleCentre extends StandardAgent<Building> {
 
   private static final Logger LOG = Logger.getLogger(SampleCentre.class);
+
+  private Point2D targetCoordinates;
 
   @Override
   public String toString() {
@@ -34,24 +38,27 @@ public class SampleCentre extends StandardAgent<Building> {
     if (time == config
         .getIntValue(kernel.KernelConstants.IGNORE_AGENT_COMMANDS_KEY)) {
       // Subscribe to channels 1 and 2
-      sendSubscribe(time, 1, 2);
+      sendSubscribe(time, 1);
     }
     for (Command next : heard) {
       LOG.debug("Heard " + next);
-//      if (next instanceof AKTell) {
-//        AKTell tell = (AKTell) next;
-//        String message = new String(tell.getMessage());
-//        if (message.startsWith("Coordinates")) {
-//          String[] parts = message.split(" ");
-//          try {
-//            int x = Integer.parseInt(parts[1]);
-//            int y = Integer.parseInt(parts[2]);
-//            LOG.info("Received coordinates of trapped civilians at: " + x + ", " + y);
-//          } catch (NumberFormatException ex) {
-//            LOG.error("Failed to parse coordinates from message: " + message + " ERROR: " + ex);
-//          }
-//        }
-//      }
+      if (next instanceof AKSpeak) {
+        AKSpeak speak = (AKSpeak) next;
+        String message = new String(speak.getContent());
+        if (message.startsWith("Coordinates")) {
+          String[] parts = message.split(" ");
+          try {
+            if (parts.length == 3) {
+              int x = Integer.parseInt(parts[1]);
+              int y = Integer.parseInt(parts[2]);
+              targetCoordinates = new Point2D(x, y);
+              LOG.info("Received coordinates of trapped civilians at: " + x + ", " + y);
+            }
+          } catch (NumberFormatException ex) {
+            LOG.error("Failed to parse coordinates from message: " + message + " ERROR: " + ex);
+          }
+        }
+      }
     }
 
     int x = me().getX();

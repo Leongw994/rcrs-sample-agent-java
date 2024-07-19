@@ -43,6 +43,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
                 StandardEntityURN.POLICE_FORCE,
                 StandardEntityURN.AMBULANCE_TEAM,
                 StandardEntityURN.BUILDING);
+        LOG.info("Sample drone connected");
         unexploredBuildings = new HashSet<EntityID>(buildingIDs);
     }
 
@@ -61,30 +62,30 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
             LOG.info("Stuck inside the building");
         }
         //go through targets and see if there are any civilians
-//        for (Human next : getTargets()) {
-//            if(next.getPosition().equals(location().getID())) {
-//                //Target civilians that might need rescuing
-//                if((next instanceof Civilian) && next.getBuriedness() == 0
-//                    && !(location() instanceof Refuge)) {
-//                        int x = me().getX();
-//                        int y = me().getY();
-//                        LOG.info("Civilians detected at: X: " + x + ", Y: " + y);
-//                        //Send coordinates to police office
-//                        String message = String.format("Coordinates: %d %d", x, y);
-//                        sendSpeak(time, 1, message.getBytes());
-//                        return;
-//                }
-//            } else {
-//                //try to move to target
-//                List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
-//                if(path != null){
-//                    LOG.info("Moving to target");
-//                    // fly command
-//                    sendFly(time, path);
-//                    return;
-//                }
-//            }
-//        }
+        for (Human next : getTargets()) {
+            if(next.getPosition().equals(location().getID())) {
+                //Find civilians that might need rescuing
+                if((next instanceof Civilian) && next.getBuriedness() > 0
+                    && !(location() instanceof Refuge)) {
+                        int x = me().getX();
+                        int y = me().getY();
+                        LOG.info("Civilians detected at: X: " + x + ", Y: " + y);
+                        //Send coordinates to police office
+                        String message = String.format("Coordinates: %d %d", x, y);
+                        sendSpeak(time, 1, message.getBytes());
+                        return;
+                }
+            } else {
+                //try to move to target
+                List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
+                if(path != null){
+                    LOG.info("Moving to target");
+                    // fly command
+                    sendFly(time, path);
+                    return;
+                }
+            }
+        }
 //
 //        // explore unvisited buildings
 //        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
@@ -116,11 +117,11 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
             Collections.shuffle(possible, random);
             boolean found = false;
             for ( EntityID next : possible ) {
-                if (!seen.contains(next)) {
+ //               if (!seen.contains(next)) {
                     current = next;
                     found = true;
                     break;
-                }
+//                }
             }
             if (!found) {
                 //dead end
@@ -136,7 +137,8 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
     private List<Human> getTargets() {
         List<Human> targets = new ArrayList<Human>();
         for (StandardEntity next: model.getEntitiesOfType(
-                StandardEntityURN.CIVILIAN)) {
+                StandardEntityURN.CIVILIAN, StandardEntityURN.AMBULANCE_TEAM,
+                StandardEntityURN.FIRE_BRIGADE, StandardEntityURN.RESCUE_ROBOT)) {
             Human human = (Human) next;
             if (human.isHPDefined() && human.isBuriednessDefined() && human.isDamageDefined()
                     && human.isPositionDefined() && human.getHP() > 0 && (human.getBuriedness() > 0 || human.getDamage() > 0)) {
