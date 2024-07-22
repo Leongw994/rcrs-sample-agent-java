@@ -87,16 +87,16 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
             }
         }
 //
-//        // explore unvisited buildings
-//        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
-//        if(path != null) {
-//            LOG.info("Searching map");
-//            sendFly(time, path);
-//            return;
-//        }
+        // explore unvisited buildings
+        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
+        if(path != null) {
+            LOG.info("Searching map");
+            sendFly(time, path);
+            return;
+        }
 
         LOG.info("Flying in random direction");
-        sendFly(time, randomWalk());
+        sendFly(time, randomFly());
     }
 
     @Override
