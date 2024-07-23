@@ -45,7 +45,7 @@ public class SampleCentre extends StandardAgent<Building> {
       if (next instanceof AKSpeak) {
         AKSpeak speak = (AKSpeak) next;
         String message = new String(speak.getContent());
-        if (message.startsWith("Coordinates")) {
+        if (message.startsWith("Help")) {
           String[] parts = message.split(" ");
           try {
             if (parts.length == 3) {
@@ -61,12 +61,18 @@ public class SampleCentre extends StandardAgent<Building> {
       }
     }
 
-    int x = me().getX();
-    int y = me().getY();
-    String message = String.format("Coordinates %d %d", x, y);
-    LOG.info("Instructed the robot to go there: " + message + "X: " + x + " Y: " + y);
-//    sendTell(time, message.getBytes());
-    sendSpeak(time, 1, message.getBytes());
+//    int x = me().getX();
+//    int y = me().getY();
+    if (targetCoordinates != null) {
+      int x = (int) targetCoordinates.getX();
+      int y = (int) targetCoordinates.getY();
+      String message = String.format("Coordinates %d %d", x, y);
+      LOG.info("Instructed the robot to go there: " + "X: " + x + " Y: " + y);
+      sendSpeak(time, 1, message.getBytes());
+    } else {
+      LOG.info("No target coordinates received");
+    }
+
 
 
     sendRest(time);
@@ -79,20 +85,6 @@ public class SampleCentre extends StandardAgent<Building> {
         StandardEntityURN.AMBULANCE_CENTRE, StandardEntityURN.POLICE_OFFICE);
   }
 
-//  private void sendCoordinatesToRescueRobot(int time, int x, int y) {
-//    int rescueRobotID = getRescueRobotID();
-//    // send command to rescue robot to go towards the coordinates
-//    sendSpeak(time, rescueRobotID, ("Go towards the civilians at " + x + ", " + y).getBytes());
-//  }
 
-  private int getRescueRobotID() {
-    Collection<StandardEntity> entities = model.getEntitiesOfType(StandardEntityURN.RESCUE_ROBOT);
-    for (StandardEntity entity : entities) {
-      int rescueRobotID = entity.getID().getValue();
-      return rescueRobotID;
-    }
-    // return null if the rescue robot is not found
-    return 0;
-  }
 
 }

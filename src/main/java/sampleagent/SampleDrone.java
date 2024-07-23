@@ -28,8 +28,8 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
     private static final Logger LOG = Logger.getLogger(SampleDrone.class);
 
     private static final int    RANDOM_FLY_LENGTH = 2;
-
     private Collection<EntityID> unexploredBuildings;
+    private Set<EntityID> visitedLocations;
 
     @Override
     public String toString() {
@@ -45,6 +45,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
                 StandardEntityURN.BUILDING);
         LOG.info("Sample drone connected");
         unexploredBuildings = new HashSet<EntityID>(buildingIDs);
+        visitedLocations = new HashSet<>();
     }
 
     @Override
@@ -57,10 +58,6 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
             LOG.debug("Heard " + next);
         }
         updateUnexploredBuildings(changed);
-        //if stuck in the building
-        if (location() instanceof Building) {
-            LOG.info("Stuck inside the building");
-        }
         //go through targets and see if there are any civilians
         for (Human next : getTargets()) {
             if(next.getPosition().equals(location().getID())) {
@@ -87,16 +84,16 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
             }
         }
 //
-        // explore unvisited buildings
-        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
-        if(path != null) {
-            LOG.info("Searching map");
-            sendFly(time, path);
-            return;
-        }
+//        // explore unvisited buildings
+//        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
+//        if(path != null) {
+//            LOG.info("Searching map");
+//            sendFly(time, path);
+//            return;
+//        }
 
         LOG.info("Flying in random direction");
-        sendFly(time, randomFly());
+        sendFly(time, randomWalk());
     }
 
     @Override
@@ -107,7 +104,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
     @Override
     protected List<EntityID> randomWalk() {
         List<EntityID> result = new ArrayList<EntityID>( RANDOM_FLY_LENGTH );
-        Set<EntityID> seen = new HashSet<EntityID>();
+        Set<EntityID> seen = new HashSet<EntityID>( visitedLocations );
         EntityID current = ( (Robot) me() ).getPosition();
 
         for (int i = 0; i < RANDOM_FLY_LENGTH; ++i) {
@@ -117,16 +114,21 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
             Collections.shuffle(possible, random);
             boolean found = false;
             for ( EntityID next : possible ) {
- //               if (!seen.contains(next)) {
+                if (!seen.contains(next)) {
                     current = next;
                     found = true;
                     break;
-//                }
+                }
             }
             if (!found) {
-                //dead end
-                break;
+                if (!possible.isEmpty()) {
+                    current = possible.get(random.nextInt(possible.size()));
+                    found = true;
+                }
             }
+//            if (!found) {
+//                break;
+//            }
         }
 
         return result;
@@ -153,5 +155,14 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         for(EntityID next : changed.getChangedEntities()) {
             unexploredBuildings.remove(next);
         }
+    }
+
+    private Collection<EntityID> getAllRoads() {
+        Collection<StandardEntity> roads = model.getEntitiesOfType(StandardEntityURN.ROAD);
+        Collection<EntityID> roadIDs = new HashSet<>();
+        for (StandardEntity road : roads) {
+            roadIDs.add(road.getID());
+        }
+        return roadIDs;
     }
 }
