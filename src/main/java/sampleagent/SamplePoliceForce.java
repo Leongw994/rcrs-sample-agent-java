@@ -16,6 +16,7 @@ import rescuecore2.standard.entities.PoliceForce;
 import rescuecore2.standard.entities.Road;
 import rescuecore2.standard.entities.StandardEntity;
 import rescuecore2.standard.entities.StandardEntityURN;
+import rescuecore2.standard.messages.AKSpeak;
 import rescuecore2.worldmodel.ChangeSet;
 import rescuecore2.worldmodel.EntityID;
 import sample.AbstractSampleAgent;
@@ -29,6 +30,7 @@ public class SamplePoliceForce extends AbstractSampleAgent<PoliceForce> {
   private static final String DISTANCE_KEY = "clear.repair.distance";
 
   private int distance;
+  private Point2D targetCivilians;
 
   @Override
   public String toString() {
@@ -53,6 +55,29 @@ public class SamplePoliceForce extends AbstractSampleAgent<PoliceForce> {
     }
     for (Command next : heard) {
       LOG.debug("Heard " + next);
+      if (next instanceof AKSpeak) {
+        AKSpeak speak = (AKSpeak) next;
+        String message = new String(speak.getContent());
+        if (message.startsWith("Help")) {
+          String[] parts = message.split(" ");
+          try {
+            if (parts.length == 3) {
+              int x = Integer.parseInt(parts[1]);
+              int y = Integer.parseInt(parts[2]);
+              targetCivilians = new Point2D(x, y);
+              LOG.info("Going to help civilians at " + x + " " + y);
+            }
+          } catch (NumberFormatException ex) {
+            LOG.error("Failed to parse coordinates from message: " + message + " ERROR: " + ex);
+          }
+        }
+      }
+    }
+    if (targetCivilians != null) {
+      moveToCivilians(time);
+    } else {
+      sendMove(time, randomWalk());
+//      sendRest(time);
     }
     // Am I near a blockade?
 //    Blockade target = getTargetBlockade();
@@ -95,13 +120,46 @@ public class SamplePoliceForce extends AbstractSampleAgent<PoliceForce> {
 //    }
 //    LOG.debug("Couldn't plan a path to a blocked road");
 //    LOG.info("Moving randomly");
-    sendMove(time, randomWalk());
+//    sendMove(time, randomWalk());
   }
 
 
   @Override
   protected EnumSet<StandardEntityURN> getRequestedEntityURNsEnum() {
     return EnumSet.of(StandardEntityURN.POLICE_FORCE);
+  }
+
+  private void moveToCivilians(int time) {
+    List<EntityID> path = search.breadthFirstSearch(me().getPosition(), getRoadID(targetCivilians));
+    if (path != null) {
+      int x = (int) targetCivilians.getX();
+      int y = (int) targetCivilians.getY();
+      sendMove(time, path, x, y);
+    } else {
+      LOG.error("No path to target found, moving randomly");
+      sendMove(time, randomWalk());
+    }
+  }
+
+  private EntityID getRoadID(Point2D p) {
+    for (StandardEntity entity : model.getEntitiesOfType(StandardEntityURN.ROAD)) {
+      Road road = (Road) entity;
+      if (road.getX() == p.getX() && road.getY() == p.getY()) {
+        return road.getID();
+      }
+    }
+    //if no exact match is found, return the closest road
+    Road closestRoad = null;
+    double closestDistance = Double.MAX_VALUE;
+    for (StandardEntity entity : model.getEntitiesOfType(StandardEntityURN.ROAD)) {
+      Road road = (Road) entity;
+      double distance = Math.sqrt(Math.pow(road.getX() - p.getX(), 2) + Math.pow(road.getY() - p.getY(), 2));
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestRoad = road;
+      }
+    }
+    return closestRoad != null ? closestRoad.getID() : null;
   }
 
 
