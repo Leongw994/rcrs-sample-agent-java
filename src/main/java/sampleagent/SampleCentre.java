@@ -45,7 +45,7 @@ public class SampleCentre extends StandardAgent<Building> {
       if (next instanceof AKSpeak) {
         AKSpeak speak = (AKSpeak) next;
         String message = new String(speak.getContent());
-        if (message.startsWith("Help")) {
+        if (message.startsWith("Coordinates")) {
           String[] parts = message.split(" ");
           try {
             if (parts.length == 3) {

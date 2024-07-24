@@ -58,42 +58,51 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
             LOG.debug("Heard " + next);
         }
         updateUnexploredBuildings(changed);
-        //go through targets and see if there are any civilians
-        for (Human next : getTargets()) {
-            if(next.getPosition().equals(location().getID())) {
-                //Find civilians that might need rescuing
-                if((next instanceof Civilian) && next.getBuriedness() > 0
-                    && !(location() instanceof Refuge)) {
-                        int x = me().getX();
-                        int y = me().getY();
-                        LOG.info("Civilians detected at: X: " + x + ", Y: " + y);
-                        //Send coordinates to police office
-                        String message = String.format("Coordinates: %d %d", x, y);
-                        sendSpeak(time, 1, message.getBytes());
-                        return;
-                }
-            } else {
-                //try to move to target
-                List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
-                if(path != null){
-                    LOG.info("Moving to target");
-                    // fly command
-                    sendFly(time, path);
-                    return;
-                }
-            }
-        }
-//
-//        // explore unvisited buildings
-//        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
-//        if(path != null) {
-//            LOG.info("Searching map");
-//            sendFly(time, path);
-//            return;
+//        //go through targets and see if there are any civilians
+//        for (Human next : getTargets()) {
+//            if(next.getPosition().equals(location().getID())) {
+//                //Find civilians that might need rescuing
+//                if((next instanceof Civilian) && next.getBuriedness() > 0
+//                    && !(location() instanceof Refuge)) {
+//                        int x = me().getX();
+//                        int y = me().getY();
+//                        LOG.info("Civilians detected at: X: " + x + ", Y: " + y);
+//                        //Send coordinates to police office
+//                        String message = String.format("Coordinates: %d %d", x, y);
+//                        sendSpeak(time, 1, message.getBytes());
+//                        return;
+//                }
+//            } else {
+//                //try to move to target
+//                List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
+//                if(path != null){
+//                    LOG.info("Moving to target");
+//                    // fly command
+//                    sendFly(time, path);
+//                    return;
+//                }
+//            }
 //        }
+////
+////        // explore unvisited buildings
+////        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
+////        if(path != null) {
+////            LOG.info("Searching map");
+////            sendFly(time, path);
+////            return;
+////        }
+//
+//        LOG.info("Flying in random direction");
+//        sendFly(time, randomWalk());
 
-        LOG.info("Flying in random direction");
-        sendFly(time, randomWalk());
+        int x = me().getX();
+        int y = me().getY();
+        LOG.info("Civilians detected at: X: " + x + ", Y: " + y);
+        //Send coordinates to police office
+        String message = String.format("Coordinates %d %d", x, y);
+        sendSpeak(time, 1, message.getBytes());
+
+        sendRest(time);
     }
 
     @Override
