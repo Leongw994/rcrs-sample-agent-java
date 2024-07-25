@@ -66,7 +66,7 @@ public class SampleCentre extends StandardAgent<Building> {
     if (targetCoordinates != null) {
       int x = (int) targetCoordinates.getX();
       int y = (int) targetCoordinates.getY();
-      String message = String.format("Coordinates %d %d", x, y);
+      String message = String.format("coordinates %d %d", x, y);
       LOG.info("Instructed the robot to go there: " + "X: " + x + " Y: " + y);
       LOG.info("Instructed the police brigade to go there: " + "X: " + x + " Y: " + y);
       sendSpeak(time, 1, message.getBytes());

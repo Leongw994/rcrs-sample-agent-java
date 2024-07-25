@@ -10,12 +10,7 @@ import rescuecore2.misc.geometry.GeometryTools2D;
 import rescuecore2.misc.geometry.Line2D;
 import rescuecore2.misc.geometry.Point2D;
 import rescuecore2.misc.geometry.Vector2D;
-import rescuecore2.standard.entities.Area;
-import rescuecore2.standard.entities.Blockade;
-import rescuecore2.standard.entities.PoliceForce;
-import rescuecore2.standard.entities.Road;
-import rescuecore2.standard.entities.StandardEntity;
-import rescuecore2.standard.entities.StandardEntityURN;
+import rescuecore2.standard.entities.*;
 import rescuecore2.standard.messages.AKSpeak;
 import rescuecore2.worldmodel.ChangeSet;
 import rescuecore2.worldmodel.EntityID;
@@ -79,6 +74,10 @@ public class SamplePoliceForce extends AbstractSampleAgent<PoliceForce> {
       sendMove(time, randomWalk());
 //      sendRest(time);
     }
+
+    if (location() instanceof Refuge) {
+      LOG.info("Escorted the civilians to safety!");
+    }
     // Am I near a blockade?
 //    Blockade target = getTargetBlockade();
 //    if (target != null) {
@@ -120,7 +119,7 @@ public class SamplePoliceForce extends AbstractSampleAgent<PoliceForce> {
 //    }
 //    LOG.debug("Couldn't plan a path to a blocked road");
 //    LOG.info("Moving randomly");
-//    sendMove(time, randomWalk());
+    sendMove(time, randomWalk());
   }
 
 

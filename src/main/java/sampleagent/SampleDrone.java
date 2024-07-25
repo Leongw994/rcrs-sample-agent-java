@@ -58,6 +58,12 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
             LOG.debug("Heard " + next);
         }
         updateUnexploredBuildings(changed);
+        int x = me().getX();
+        int y = me().getY();
+        LOG.info("Civilians detected at: X: " + x + ", Y: " + y);
+        //Send coordinates to police office
+        String message = String.format("Coordinates %d %d", x, y);
+        sendSpeak(time, 1, message.getBytes());
 //        //go through targets and see if there are any civilians
 //        for (Human next : getTargets()) {
 //            if(next.getPosition().equals(location().getID())) {
@@ -92,17 +98,26 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
 ////            return;
 ////        }
 //
-//        LOG.info("Flying in random direction");
+        LOG.info("Flying in random direction");
+        sendFly(time, randomWalk());
+
+//        //for (Human next : getTargets()) {
+//            //if(next.getPosition().equals(location().getID())) {
+//                //if ((next instanceof Civilian) && !(location() instanceof Refuge)) {
+//                    int x = me().getX();
+//                    int y = me().getY();
+//                    LOG.info("Civilians detected at: X: " + x + ", Y: " + y);
+//                    //Send coordinates to police office
+//                    String message = String.format("Coordinates %d %d", x, y);
+//                    sendSpeak(time, 1, message.getBytes());
+//                    return;
+//                //}
+//            //}
+//        //}
+
+
 //        sendFly(time, randomWalk());
-
-        int x = me().getX();
-        int y = me().getY();
-        LOG.info("Civilians detected at: X: " + x + ", Y: " + y);
-        //Send coordinates to police office
-        String message = String.format("Coordinates %d %d", x, y);
-        sendSpeak(time, 1, message.getBytes());
-
-        sendRest(time);
+//        sendRest(time);
     }
 
     @Override
@@ -113,33 +128,25 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
     @Override
     protected List<EntityID> randomWalk() {
         List<EntityID> result = new ArrayList<EntityID>( RANDOM_FLY_LENGTH );
-        Set<EntityID> seen = new HashSet<EntityID>( visitedLocations );
+        Set<EntityID> seen = new HashSet<EntityID>();
         EntityID current = ( (Robot) me() ).getPosition();
-
-        for (int i = 0; i < RANDOM_FLY_LENGTH; ++i) {
+        for ( int i = 0; i < RANDOM_FLY_LENGTH; ++i ) {
             result.add( current );
-            seen.add( current );
-            List<EntityID> possible = new ArrayList<EntityID>( neighbours.get( current ) );
-            Collections.shuffle(possible, random);
+//            seen.add( current );
+            List<EntityID> possible = new ArrayList<EntityID>(
+                    neighbours.get( current ) );
+            Collections.shuffle( possible, random );
             boolean found = false;
             for ( EntityID next : possible ) {
-                if (!seen.contains(next)) {
-                    current = next;
-                    found = true;
-                    break;
-                }
+                current = next;
+                found = true;
+                break;
             }
-            if (!found) {
-                if (!possible.isEmpty()) {
-                    current = possible.get(random.nextInt(possible.size()));
-                    found = true;
-                }
+            if ( !found ) {
+                // We reached a dead-end.
+                break;
             }
-//            if (!found) {
-//                break;
-//            }
         }
-
         return result;
     }
 

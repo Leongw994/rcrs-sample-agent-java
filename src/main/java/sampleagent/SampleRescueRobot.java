@@ -55,7 +55,7 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
             if (next instanceof AKSpeak) {
                 AKSpeak tell = (AKSpeak) next;
                 String message = new String(tell.getContent());
-                if (message.startsWith("Coordinates")) {
+                if (message.startsWith("coordinates")) {
                     try {
                         handleGoCommand(message);
                         LOG.info("Going to coordinates");
@@ -121,12 +121,13 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
 
     private void handleGoCommand(String message) {
         String[] parts = message.split(" ");
-//        LOG.info("message length: " + parts.length + " " + message);
+        LOG.info("message length: " + parts.length + " " + message);
         if(parts.length == 3) {
             int x = Integer.parseInt(parts[1]);
             int y = Integer.parseInt(parts[2]);
             targetCoordinates = new Point2D(x, y);
-            LOG.info("Received coordinates of civilians at: " + x + ", " + y);
+            LOG.info("Received coordinates of civilians at: " + x + ", " + y + " from police centre");
+            LOG.info("Received coordinates of civilians at: " + x + ", " + y + " from the drone");
         }
     }
 
