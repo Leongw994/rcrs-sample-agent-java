@@ -29,8 +29,8 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
 
     private static final int    RANDOM_FLY_LENGTH = 2;
     private Collection<EntityID> unexploredBuildings;
-    private Set<EntityID> visitedLocations;
-    Collection<EntityID> targetDestination;
+
+    private EntityID targetDestination;
 
     @Override
     public String toString() {
@@ -46,7 +46,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
                 StandardEntityURN.BUILDING);
         LOG.info("Sample drone connected");
         unexploredBuildings = new HashSet<EntityID>(buildingIDs);
-        visitedLocations = new HashSet<>();
+        targetDestination = null;
     }
 
     @Override
@@ -61,21 +61,57 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         }
         updateUnexploredBuildings(changed);
 
-        // Nothing to do
-//        if (targetDestination == null && me().getPosition().equals(unexploredBuildings)) {
-//            targetDestination = unexploredBuildings;
+//        // Nothing to do
+//        List<EntityID> path = null;
+//        if ((targetDestination != null) && (!targetDestination.equals(me().getPosition()))) {
+//            path = search.breadthFirstSearch(me().getPosition(), targetDestination);
+//            if (path != null) {
+//                LOG.info("Flying to target destination");
+//                sendFly(time, path);
+//                return;
+//            }
 //        }
-        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
-        if (path != null) {
-            LOG.info("Searching buildings");
-            sendFly(time, path);
-            int x = me().getX();
-            int y = me().getY();
-            LOG.info("Detected civilians at: " + x + ", " + y);
-            String message = String.format("People %d %d", x, y);
-            sendSpeak(time, 1, message.getBytes());
-            return;
-        }
+//
+//        if (!unexploredBuildings.isEmpty()) {
+//            path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
+//            targetDestination = path.get(path.size() - 1);
+//        } else {
+//            //if no unexplored buildings, go to random location
+//            List<StandardEntity> allAreasEntities = new ArrayList<>(model.getEntitiesOfType(
+//                    StandardEntityURN.ROAD, StandardEntityURN.BUILDING, StandardEntityURN.REFUGE));
+//            List<EntityID> allAreas = new ArrayList<>();
+//            for (StandardEntity entity : allAreasEntities) {
+//                allAreas.add(entity.getID());
+//            }
+//            Collections.shuffle(allAreas);
+//            targetDestination = allAreas.get(0);
+//            path = search.breadthFirstSearch(me().getPosition(), targetDestination);
+//        }
+//
+//        // Move to the target destination
+//        if (path != null) {
+//            LOG.info("Flying to target destination");
+//            sendFly(time, path);
+//        }
+
+
+//        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
+//        if (path != null) {
+//            LOG.info("Searching buildings");
+//            sendFly(time, path);
+////            detectCivilians(time);
+//            int x = me().getX();
+//            int y = me().getY();
+//            LOG.info("Detected civilians at: " + x + ", " + y);
+//            String message = String.format("People %d %d", x, y);
+//            sendSpeak(time, 1, message.getBytes());
+//            return;
+//        }
+        int x = me().getX();
+        int y = me().getY();
+        LOG.info("Detected civilians at: " + x + ", " + y);
+        String message = String.format("People %d %d", x, y);
+        sendSpeak(time, 1, message.getBytes());
         LOG.info("Moving randomly");
         sendFly(time, randomWalk());
 
@@ -144,4 +180,20 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         }
         return roadIDs;
     }
+
+    private void detectCivilians(int time) {
+        for (StandardEntity entity : model.getEntitiesOfType(StandardEntityURN.CIVILIAN)) {
+            Civilian civilian = (Civilian) entity;
+            if (civilian.isHPDefined() && civilian.isBuriednessDefined() && civilian.isDamageDefined()
+                && civilian.isPositionDefined()) {
+                EntityID location = civilian.getPosition();
+                int x = ((Road) model.getEntity(location)).getX();
+                int y = ((Road) model.getEntity(location)).getY();
+                String message = String.format("Civilians %d %d", x, y);
+                LOG.info(message);
+                sendSpeak(time, 1, message.getBytes());
+            }
+        }
+    }
+
 }
