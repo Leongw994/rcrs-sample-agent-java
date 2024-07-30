@@ -30,6 +30,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
     private static final int    RANDOM_FLY_LENGTH = 2;
     private Collection<EntityID> unexploredBuildings;
     private Set<EntityID> visitedLocations;
+    Collection<EntityID> targetDestination;
 
     @Override
     public String toString() {
@@ -50,74 +51,34 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
 
     @Override
     protected void think(int time, ChangeSet changed, Collection<Command> heard) {
-        if(time == config.getIntValue(kernel.KernelConstants.IGNORE_AGENT_COMMANDS_KEY)) {
-            //subscribe to channel 1
+        if (time == config
+                .getIntValue(kernel.KernelConstants.IGNORE_AGENT_COMMANDS_KEY)) {
+            // Subscribe to channel 1
             sendSubscribe(time, 1);
         }
-        for (Command next : heard){
+        for (Command next : heard) {
             LOG.debug("Heard " + next);
         }
         updateUnexploredBuildings(changed);
-        int x = me().getX();
-        int y = me().getY();
-        LOG.info("Civilians detected at: X: " + x + ", Y: " + y);
-        //Send coordinates to police office
-        String message = String.format("Coordinates %d %d", x, y);
-        sendSpeak(time, 1, message.getBytes());
-//        //go through targets and see if there are any civilians
-//        for (Human next : getTargets()) {
-//            if(next.getPosition().equals(location().getID())) {
-//                //Find civilians that might need rescuing
-//                if((next instanceof Civilian) && next.getBuriedness() > 0
-//                    && !(location() instanceof Refuge)) {
-//                        int x = me().getX();
-//                        int y = me().getY();
-//                        LOG.info("Civilians detected at: X: " + x + ", Y: " + y);
-//                        //Send coordinates to police office
-//                        String message = String.format("Coordinates: %d %d", x, y);
-//                        sendSpeak(time, 1, message.getBytes());
-//                        return;
-//                }
-//            } else {
-//                //try to move to target
-//                List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
-//                if(path != null){
-//                    LOG.info("Moving to target");
-//                    // fly command
-//                    sendFly(time, path);
-//                    return;
-//                }
-//            }
+
+        // Nothing to do
+//        if (targetDestination == null && me().getPosition().equals(unexploredBuildings)) {
+//            targetDestination = unexploredBuildings;
 //        }
-////
-////        // explore unvisited buildings
-////        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
-////        if(path != null) {
-////            LOG.info("Searching map");
-////            sendFly(time, path);
-////            return;
-////        }
-//
-        LOG.info("Flying in random direction");
+        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
+        if (path != null) {
+            LOG.info("Searching buildings");
+            sendFly(time, path);
+            int x = me().getX();
+            int y = me().getY();
+            LOG.info("Detected civilians at: " + x + ", " + y);
+            String message = String.format("People %d %d", x, y);
+            sendSpeak(time, 1, message.getBytes());
+            return;
+        }
+        LOG.info("Moving randomly");
         sendFly(time, randomWalk());
 
-//        //for (Human next : getTargets()) {
-//            //if(next.getPosition().equals(location().getID())) {
-//                //if ((next instanceof Civilian) && !(location() instanceof Refuge)) {
-//                    int x = me().getX();
-//                    int y = me().getY();
-//                    LOG.info("Civilians detected at: X: " + x + ", Y: " + y);
-//                    //Send coordinates to police office
-//                    String message = String.format("Coordinates %d %d", x, y);
-//                    sendSpeak(time, 1, message.getBytes());
-//                    return;
-//                //}
-//            //}
-//        //}
-
-
-//        sendFly(time, randomWalk());
-//        sendRest(time);
     }
 
     @Override
@@ -132,12 +93,15 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         EntityID current = ( (Robot) me() ).getPosition();
         for ( int i = 0; i < RANDOM_FLY_LENGTH; ++i ) {
             result.add( current );
-//            seen.add( current );
+            seen.add( current );
             List<EntityID> possible = new ArrayList<EntityID>(
                     neighbours.get( current ) );
             Collections.shuffle( possible, random );
             boolean found = false;
             for ( EntityID next : possible ) {
+//                if ( seen.contains( next ) ) {
+//                    continue;
+//                }
                 current = next;
                 found = true;
                 break;
@@ -155,8 +119,7 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
     private List<Human> getTargets() {
         List<Human> targets = new ArrayList<Human>();
         for (StandardEntity next: model.getEntitiesOfType(
-                StandardEntityURN.CIVILIAN, StandardEntityURN.AMBULANCE_TEAM,
-                StandardEntityURN.FIRE_BRIGADE, StandardEntityURN.RESCUE_ROBOT)) {
+                StandardEntityURN.CIVILIAN)) {
             Human human = (Human) next;
             if (human.isHPDefined() && human.isBuriednessDefined() && human.isDamageDefined()
                     && human.isPositionDefined() && human.getHP() > 0 && (human.getBuriedness() > 0 || human.getDamage() > 0)) {
