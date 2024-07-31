@@ -71,7 +71,7 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
             sendMove(time, randomWalk());
         }
 
-//        // Am I near a blockade?
+        // Am I near a blockade?
 //        Blockade target = getTargetBlockade();
 //        if (target != null) {
 //            LOG.info("Clearing blockade " + target);
@@ -91,8 +91,7 @@ public class SampleRescueRobot extends AbstractSampleAgent<RescueRobot> {
 //                    best = d;
 //                    bestPoint = closest;
 //                }
-//            }-
-//            @SuppressWarnings("null")
+//            }
 //            Vector2D v = bestPoint.minus(new Point2D(me().getX(), me().getY()));
 //            v = v.normalised().scale(1000000);
 //            sendClear(time, (int) (me().getX() + v.getX()),

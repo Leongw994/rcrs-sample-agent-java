@@ -60,8 +60,9 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
             LOG.debug("Heard " + next);
         }
         updateUnexploredBuildings(changed);
+        boolean civiliansDetected = checkForCivilians(changed);
 
-//        // Nothing to do
+        // Nothing to do
 //        List<EntityID> path = null;
 //        if ((targetDestination != null) && (!targetDestination.equals(me().getPosition()))) {
 //            path = search.breadthFirstSearch(me().getPosition(), targetDestination);
@@ -92,6 +93,8 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
 //        if (path != null) {
 //            LOG.info("Flying to target destination");
 //            sendFly(time, path);
+//        } else {
+//            sendFly(time, randomWalk());
 //        }
 
 
@@ -107,14 +110,17 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
 //            sendSpeak(time, 1, message.getBytes());
 //            return;
 //        }
-        int x = me().getX();
-        int y = me().getY();
-        LOG.info("Detected civilians at: " + x + ", " + y);
-        String message = String.format("People %d %d", x, y);
-        sendSpeak(time, 1, message.getBytes());
+
+        if (civiliansDetected){
+            int x = me().getX();
+            int y = me().getY();
+            LOG.info("Detected civilians at: " + x + ", " + y);
+            String message = String.format("People %d %d", x, y);
+            sendSpeak(time, 1, message.getBytes());
+        }
+
         LOG.info("Moving randomly");
         sendFly(time, randomWalk());
-
     }
 
     @Override
@@ -150,6 +156,26 @@ public class SampleDrone extends AbstractSampleAgent<Drone> {
         return result;
     }
 
+    private boolean checkForCivilians(ChangeSet changed) {
+        //get the current position of the agent
+        EntityID curPosition = me().getPosition();
+
+        //check for changes at the current position
+        for (EntityID entity : changed.getChangedEntities()) {
+            StandardEntity entityObject = model.getEntity(entity);
+
+            //check if entity is a civilian
+            if (entityObject.getStandardURN().equals(StandardEntityURN.CIVILIAN)) {
+                Civilian civilian = (Civilian) entityObject;
+
+                //check if the civilians is at the current position
+                if (civilian.getPosition().equals(curPosition)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
 
     private List<Human> getTargets() {
